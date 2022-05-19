@@ -1,27 +1,23 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import re
-import unicodedata
-import numpy as np
-from sklearn.model_selection import train_test_split, cross_validate, cross_val_score
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error, roc_auc_score
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.decomposition import PCA
-import lightgbm as lgb
-import math
-import optuna
 import copy
-import scipy.stats as stats
-from rdkit import rdBase
-from rdkit import rdBase, Chem
-from rdkit.Chem import AllChem, Draw, Descriptors
-from rdkit.Chem.Draw import rdMolDraw2D
-from IPython.display import SVG
-from mordred import Calculator, descriptors
-import physbo
-from sklearn import preprocessing 
-from sklearn.model_selection import KFold
 import itertools
+import math
+import unicodedata
+import re
+
+import lightgbm as lgb
+from mordred import Calculator, descriptors
+import matplotlib.pyplot as plt
+import numpy as np
+import optuna
+import pandas as pd
+import physbo
+from rdkit import Chem
+from rdkit.Chem import AllChem, Draw
+import scipy.stats as stats
+from sklearn import preprocessing 
+from sklearn.model_selection import cross_val_score, KFold
+from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.ensemble import RandomForestRegressor
 
 
 data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
