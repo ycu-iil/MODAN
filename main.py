@@ -1,16 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# # 準備
-
-# In[1]:
-
-
-#!pip install japanize-matplotlib
-#!pip install optuna
 import pandas as pd
 import matplotlib.pyplot as plt
-#import japanize_matplotlib 
 import re
 import unicodedata
 import numpy as np
@@ -21,65 +10,25 @@ from sklearn.decomposition import PCA
 import lightgbm as lgb
 import math
 import optuna
-
 import copy
 import scipy.stats as stats
-
-#RDKitの準備. とりあえず実行してください. 少々時間がかかります. 
-#!pip install kora
-#import kora.install.rdkit
 from rdkit import rdBase
-print(rdBase.rdkitVersion)
-
-#RDKitと関連するライブラリをインポート
 from rdkit import rdBase, Chem
 from rdkit.Chem import AllChem, Draw, Descriptors
-#以下は特に描画用
 from rdkit.Chem.Draw import rdMolDraw2D
 from IPython.display import SVG
-
-
-#!pip install mordred
 from mordred import Calculator, descriptors
-
-
-# # データ読み込み
-from google.colab import drive
-drive.mount('/content/drive')
-data = pd.read_excel('/content/drive/MyDrive/Colab Notebooks/data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
-
-
-# In[8]:
+import physbo
+from sklearn import preprocessing 
+from sklearn.model_selection import KFold
+import itertools
 
 
 data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
 
-
-# In[9]:
-
-
-data
-
-data['Δ[θ] ([θ]222/[θ]208)']
-# # 前処理
-
-# In[14]:
-
-
 peptide_list = data['修正ペプチド配列']
 for p in peptide_list:
     print(p)
-
-
-# In[ ]:
-
-
-
-
-
-# In[11]:
-
-
 smiles_list = data['SMILES']
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 
@@ -133,9 +82,6 @@ mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 # 
 # 
 
-# In[12]:
-
-
 #とりあえずL体だけで用意
 AA_dict = {
   'A': 'Alanine',
@@ -179,9 +125,6 @@ AA_dict.update(D_AA_dict)  # MEMO: 混乱するのでAA_all_dict とかにする
 AA_dict['='] = 'Link'
 
 
-# In[13]:
-
-
 AA_keys = list(AA_dict.keys())
 link_index_list = []
 for st in ['S5', 'R8', 's5', 'r8', '=']:
@@ -195,9 +138,6 @@ for st in ['S', 'R', 's', 'r']:
 print('SR_index_list', SR_index_list)
 
 
-# In[15]:
-
-
 ct_list, nt_list = [], []
 for peptide in peptide_list:
   #remove '\xa0' and ' ' in peptide string
@@ -209,9 +149,6 @@ ct_list = list(set(ct_list))
 nt_list = list(set(nt_list))
 print('ct_list', ct_list)
 print('nt_list', nt_list)
-
-
-# In[16]:
 
 
 peptide_feature_list = []
@@ -262,9 +199,6 @@ for peptide in peptide_list:
   peptide_feature_list.append(peptide_feature)
 
 
-# In[17]:
-
-
 def peptide_feature2AA_seq(pf):
   aa_seq = ''
   for j, k in enumerate(pf[4:]):
@@ -274,11 +208,6 @@ def peptide_feature2AA_seq(pf):
   seq = ct_list[pf[0]]+'-'+aa_seq+'-'+nt_list[pf[1]]
   return seq
 
-
-# In[19]:
-
-
-#AA_keys = list(AA_dict.keys())
 
 for i, pf in enumerate(peptide_feature_list):
   
@@ -302,8 +231,6 @@ for i, pf in enumerate(peptide_feature_list):
   print(i, seq)
   print(i, peptide_list[i])
   print('')
-# In[37]:
-
 
 #padding
 max_len = np.max([len(v) for v in peptide_feature_list])
@@ -316,9 +243,6 @@ for fl in peptide_feature_list:
   print(fl)
 # # 新規ペプチド生成
 # 
-
-# In[42]:
-
 
 #アミノ酸構造の準備 #Prolineは未対応
 #L-体
@@ -357,10 +281,6 @@ AA_joint = {
 #{
 #    'D-I': 'CC[C@@H](C)[*1]'
 #}
-
-
-# In[43]:
-
 
 def make_joint_MC(base_mol, MC_mol, pep_len):
 
@@ -434,9 +354,6 @@ def make_joint_MC(base_mol, MC_mol, pep_len):
   base_mol = Chem.RemoveHs(base_mol)
   base_smi = Chem.MolToSmiles(base_mol)
   return base_smi, base_mol
-
-
-# In[44]:
 
 
 def make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list):
@@ -636,9 +553,6 @@ def make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list):
   return Chem.MolToSmiles(joint_MC_mol), joint_MC_mol
 
 
-# In[45]:
-
-
 def generate_new_peptitde(base_index, input_aa_list):
 
   pep_len = len([v for v in  peptide_feature_list[base_index][4:] if v >= 0])
@@ -698,16 +612,7 @@ def mol_with_atom_index( mol ):
     return mol
 
 
-# In[ ]:
-
-
-
-
-
 # # 分子構造編集
-
-# In[48]:
-
 
 def calc_smiles_skip_connection(smi, peptide_feature, skip = 4):
   
@@ -768,9 +673,6 @@ def calc_smiles_skip_connection(smi, peptide_feature, skip = 4):
   return vertical_list
 
 
-# In[49]:
-
-
 def calc_feature_skip_connection(smi, peptide_feature, skip, feature, descriptor_dimension = 2048):
   vertical_list = calc_smiles_skip_connection(smi, peptide_feature, skip = 4)
   
@@ -793,9 +695,6 @@ def calc_feature_skip_connection(smi, peptide_feature, skip, feature, descriptor
   return vertical_feature
 
 
-# In[50]:
-
-
 def replaceP_smiles(smi, peptide_feature, base_atom = 'P'):
   pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
   mol = Chem.MolFromSmiles(smi)
@@ -813,9 +712,6 @@ def replaceP_smiles(smi, peptide_feature, base_atom = 'P'):
   #print(x)
   #print(Chem.MolToSmiles(x[0]))
   return Chem.MolToSmiles(x[0])
-
-
-# In[52]:
 
 
 def calc_graph_connect(smi, peptide_feature, skip = 4):
@@ -855,32 +751,6 @@ def calc_graph_connect(smi, peptide_feature, skip = 4):
   x = Chem.RemoveHs(mol)
   #print(Chem.MolToSmiles(x))
   return Chem.MolToSmiles(x)
-  """
-
-  matches = mol.GetSubstructMatches(MC_smiles)[0]
-  
-  bs = [mol.GetBondBetweenAtoms(matches[i*4 + 1],matches[i*4 + 3]).GetIdx(), mol.GetBondBetweenAtoms(matches[i*4 + 3],matches[i*4 + 4]).GetIdx()]
-      fragments_mol = Chem.FragmentOnBonds(mol,bs,addDummies=True,dummyLabels=[(int(i/skip+1), int(i/skip+1)), (int(i/skip + 2), int(i/skip + 2))])
-      fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-      for fragment in fragments:
-        if '['+str(int(i/skip+1))+'*]' in Chem.MolToSmiles(fragment) and '['+str(int(i/skip+2))+'*]' in Chem.MolToSmiles(fragment):
-          aa_fragment = fragment
-          break
-
-      reaction_pattern = '[*:1]['+str(int(i/skip+1))+'*].['+str(int(i/skip+1))+'*][*:2] >> [*:1][*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      vertical_list[skip_base] = rxn.RunReactants([vertical_list[skip_base], aa_fragment])[0][0]
-    else:
-  """
-
-
-# In[ ]:
-
-
-
-
-
-# In[53]:
 
 
 def calc_smiles_woMC(smi, peptide_feature, base_atom = 'P'):
@@ -955,10 +825,6 @@ def calc_smiles_woMC(smi, peptide_feature, base_atom = 'P'):
   print(Chem.MolToSmiles(mol))
   
 
-
-
-    
-  
   matches = mol.GetSubstructMatches(tmp)
   print(len(matches), matches)
   rep_core = AllChem.ReplaceCore(mol, tmp)
@@ -1054,10 +920,6 @@ def calc_smiles_woMC(smi, peptide_feature, base_atom = 'P'):
   #Draw.MolsToGridImage([ordered_side_mol_list[0], ordered_side_mol_list[1], x])
   
 
-
-# In[54]:
-
-
 #for i in range(len(smiles_list)):
 #5(Ac6c),8(主鎖検出でエラー, 元のSMILES修正でOK), 11(Aib, 架橋),13(Ac5c)
 smiles_woMC_list = []
@@ -1065,9 +927,6 @@ for i in range(len(smiles_list)):
   print(i, smiles_list[i])
   seq_smi = calc_smiles_woMC(smiles_list[i], peptide_feature_list[i])
   smiles_woMC_list.append(seq_smi)
-
-
-# In[55]:
 
 
 smiles_repP_list = []
@@ -1078,9 +937,6 @@ for i in range(len(smiles_list)):
 
 
 # # 特徴量計算
-
-# In[56]:
-
 
 #Calculation of Fingerprint, descriptor
 descriptor_dimension = 1024
@@ -1136,11 +992,6 @@ repP_skip7_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for
 repP_skip7_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
 
 
-
-
-# In[ ]:
-
-
 #vertical_feature
 """
 v_skip4_Morgan_r2_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 4, feature = 'Morgan_r2', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
@@ -1155,9 +1006,6 @@ v_skip7_Morgan_r2_count = [calc_feature_skip_connection(smiles_list[i], peptide_
 v_skip7_Morgan_r4_count = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'Morgan_r4_count', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
 v_skip7_MACCS_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'MACCS') for i in range(len(smiles_list))]
 """
-
-
-# In[57]:
 
 
 def calc_mordred_descriptor(mol_list):
@@ -1175,40 +1023,7 @@ def calc_mordred_descriptor(mol_list):
   return modred_descriptor
 
 
-# In[ ]:
-
-
-#mordred_descriptor = calc_mordred_descriptor(mol_list)
-#woMC_mordred_descriptor = calc_mordred_descriptor(mol_woMC_list)
-#repP_mordred_descriptor = calc_mordred_descriptor(mol_repP_list)
-#repP_skip4_mordred_descriptor = calc_mordred_descriptor(mol_repP_skip4_list)
-#repP_skip7_mordred_descriptor = calc_mordred_descriptor(mol_repP_skip7_list)
-
-#v_skip4_mordred_descriptor = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 4, feature = 'mordred') for i in range(len(smiles_list))]
-#v_skip7_mordred_descriptor = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'mordred') for i in range(len(smiles_list))]
-
-
 # # 予測モデル構築準備
-
-# In[58]:
-
-
-#physboのインポート
-#pipでインストール
-#!pip3 install physbo
-import physbo
-
-from sklearn import preprocessing 
-
-
-# In[ ]:
-
-
-
-
-
-# In[59]:
-
 
 def GP_predict(train_X, test_X, train_y, test_y):
 
@@ -1229,9 +1044,6 @@ def GP_predict(train_X, test_X, train_y, test_y):
   test_fcov = gp.get_post_fcov(train_X, test_X)
 
   return [train_fmean, train_fcov], [test_fmean, test_fcov] 
-
-
-# In[64]:
 
 
 def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log = False, standardize = False):
@@ -1390,7 +1202,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
   print(X)
   print(y)
 
-  from sklearn.model_selection import KFold
   kf = KFold(n_splits = fold_n, shuffle = True, random_state=0)
 
   y_pred_list = []
@@ -1504,9 +1315,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 
 # # 予測精度検証
 
-# In[65]:
-
-
 #model list: 'RF', 'lightgbm'
 #feature list: 'Morgan_r2', 'Morgan_r4','Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'Morgan_r2_MACCS', 'one-hot', 'mordred'
 
@@ -1525,9 +1333,6 @@ for smiles_type in ['smiles_repP_skip7']:
   for target_index in [16]:
     for feature in ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS']:# ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'mordred']:#['one-hot', 'mordred', 'Morgan_r2', 'Morgan_r4', 'MACCS']:
       calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
-
-
-# In[66]:
 
 
 target_index = 16
@@ -1577,16 +1382,7 @@ else:
 plt.show()
 
 
-# In[67]:
-
-
-smiles_list[base_index]
-
-
 # # BOによる推薦
-
-# In[ ]:
-
 
 #候補ペプチドの準備
 
@@ -1606,10 +1402,6 @@ smiles_list[base_index]
 #作り方の方針: linker以外をN箇所mutation, 最後に最後にlinkerをつける.
 
 
-# In[68]:
-
-
-import itertools
 
 base_index = 8
 input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
@@ -1670,19 +1462,9 @@ mutation_info_list = mutation_info_list + linker_mutation_info_list
 print(len(mutation_info_list))
 
 
-# In[69]:
-
-
-mutation_info_list[:4]
-
-
-# In[70]:
-
-
 new_peptide_mol_list, new_peptide_smi_list = [], []
 new_peptide_feature_list = []
 cand_data_list = []
-
 
 for mutation_info in mutation_info_list:
   print(len(cand_data_list), len(mutation_info_list))
@@ -1698,29 +1480,11 @@ for mutation_info in mutation_info_list:
   new_peptide_smi_list.append(new_peptide_smi)
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[71]:
-
-
 new_smiles_repP_list = []
 for i in range(len(new_peptide_smi_list)):
   print(i, new_peptide_smi_list[i])
   seq_smi = replaceP_smiles(new_peptide_smi_list[i], new_peptide_feature_list[i])
   new_smiles_repP_list.append(seq_smi)
-
-
-# In[72]:
 
 
 mol_list = new_peptide_mol_list
@@ -1739,9 +1503,6 @@ Cand_repP_skip7_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radia
 Cand_repP_skip7_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_skip7_list]
 Cand_repP_skip7_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
 Cand_repP_skip7_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
-
-
-# In[73]:
 
 
 def get_EI_list(train_Y, pred_y, sigma2_pred):
@@ -1774,15 +1535,6 @@ def calc_PI_underfmin(fmean, fcov, fmin): #fminに基準値を入れる, fminを
   temp = (fmin - fmean) / fstd
   score = stats.norm.cdf(temp)
   return score
-
-
-# In[74]:
-
-
-cand_data_list[0]
-
-
-# In[76]:
 
 
 #target_index
@@ -1905,18 +1657,12 @@ for target_i in range(len(target_list)):
     plt.show()
 
 
-# In[77]:
-
-
 total_pi_score_list = []
 for j in range(len(new_peptide_feature_list)):
   score = 1
   for i in range(len(target_list)):
     score = score*pi_list_list[i][j]
   total_pi_score_list.append(score)
-
-
-# In[78]:
 
 
 plt.plot(total_pi_score_list)
@@ -1933,10 +1679,3 @@ for top_index in ordered_total_PI_score_index[:10]:
     target_name = data.keys()[target_index]
     print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3))
   
-
-
-# In[ ]:
-
-
-
-
