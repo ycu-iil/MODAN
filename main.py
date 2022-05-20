@@ -5,19 +5,23 @@ import unicodedata
 import re
 
 import lightgbm as lgb
-from mordred import Calculator, descriptors
 import matplotlib.pyplot as plt
 import numpy as np
 import optuna
 import pandas as pd
 import physbo
 from rdkit import Chem
-from rdkit.Chem import AllChem, Draw
-import scipy.stats as stats
+from rdkit.Chem import AllChem
 from sklearn import preprocessing 
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
+
+from acquisition_function import calc_PI_overfmax, calc_PI_underfmin
+from feature_generator import calc_MorganCount, calc_mordred_descriptor
+import metadata
+from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
+from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect
 
 
 data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
@@ -28,48 +32,9 @@ for p in peptide_list:
 smiles_list = data['SMILES']
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 
-#とりあえずL体だけで用意
-AA_dict = {
-  'A': 'Alanine',
-  'C': 'Cysteine',
-  'D': 'Aspartic acid',
-  'E': 'Glutamic acid',
-  'F': 'Phenylalanine',
-  'G': 'Glycine',
-  'H': 'Histidine',
-  'I': 'Isoleucine',
-  'K': 'Lysine',
-  'L': 'Leucine',
-  'M': 'Methionine',
-  'N': 'Asparagine',
-  'P': 'Proline',
-  'Q': 'Glutamine',
-  'R': 'Arginine',
-  'S': 'Serine',
-  'T': 'Threonine',
-  'V': 'Valine',
-  'W': 'Tryptophane',
-  'Y': 'Tyrosine',
-  'O': 'Orthinine',
-  'X0': 'L-homoserine-(O-allyl)',
-  'X1': 'Dab',
-  'X2': 'Sarcosine',
-  'B': 'Ac5c',
-  'U': 'Aib',
-  'Z': 'Ac6c',
-  'S5': '(S)-2-(4-pentenyl)Alanine',
-  'R8': '(R)-2-(7-pentenyl)Alanine',
-}
-#D体用に拡張
-D_AA_dict = {}
-for aa in AA_dict.keys():
-  D_AA_dict[aa.lower()] = 'D-'+AA_dict[aa]
 
-AA_dict.update(D_AA_dict)  # MEMO: 混乱するのでAA_all_dict とかにする
-
-#架橋用
-AA_dict['='] = 'Link'
-
+AA_dict = metadata.AA_dict
+AA_joint = metadata.AA_joint
 
 AA_keys = list(AA_dict.keys())
 link_index_list = []
@@ -145,19 +110,10 @@ for peptide in peptide_list:
   peptide_feature_list.append(peptide_feature)
 
 
-def peptide_feature2AA_seq(pf):
-  aa_seq = ''
-  for j, k in enumerate(pf[4:]):
-    if j in pf[2:4]:
-      aa_seq += '='
-    aa_seq += AA_keys[k]
-  seq = ct_list[pf[0]]+'-'+aa_seq+'-'+nt_list[pf[1]]
-  return seq
-
 
 for i, pf in enumerate(peptide_feature_list):
   
-  seq = peptide_feature2AA_seq(pf)
+  seq = peptide_feature2AA_seq(pf, AA_keys, ct_list, nt_list)
   print(i, seq)
   print(i, peptide_list[i])
   print('')
@@ -190,342 +146,6 @@ for fl in peptide_feature_list:
 # # 新規ペプチド生成
 # 
 
-#アミノ酸構造の準備 #Prolineは未対応
-#L-体
-AA_joint = {
-  'A': '[1*]C',
-  'C': '[1*]CS',
-  'D': 'OC(=O)C[1*]',
-  'E': 'OC(=O)CC[1*]',
-  'F': '[1*]CC1=CC=CC=C1',
-  'G': '[1*][H]',
-  'H': '[1*]CC1=CN=CN1',
-  'I': 'CC[C@H](C)[1*]',
-  'K': 'NCCCC[1*]',
-  'L': 'CC(C)C[1*]',
-  'M': 'CSCC[1*]',
-  'N': 'NC(=O)C[1*]',
-  'P': 'Proline', #Prolineは未対応
-  'Q': 'NC(=O)CC[1*]',
-  'R': 'NC(N)=NCCC[1*]',
-  'S': 'OC[1*]',
-  'T': 'C[C@@H](O)[1*]',
-  'V': 'CC(C)[1*]',
-  'W': '[1*]CC1=CNC2=CC=CC=C12',
-  'Y': 'OC1=CC=C(C[1*])C=C1',
-  'O': 'NCCC[1*]',
-  'X0': '[1*]CCOCC=C',
-  'X1': 'NCC[1*]', 
-  'X2': 'Sarcosine', #要対応 Nにメチル, CaのところはのところはGlycineと同じ([*1]H)
-  'B': 'C1CC[1*]C1', #要対応 5員環にする
-  'U': 'Aib', # 要対応 C(C)(C)にする
-  'Z': 'C1CC[1*]CC1', # 要対応6員環にする 
-  'S5': 'C[1*]CCC\C=[300*]', #向きは難しい...自信ない C[*1]CCCC=[*300]
-  'R8': 'C[1*]CCCCCCC=[300*]', #C[*1]CCCCCCC=[*300] 
-}
-
-#{
-#    'D-I': 'CC[C@@H](C)[*1]'
-#}
-
-def make_joint_MC(base_mol, MC_mol, pep_len):
-
-  for i in range(pep_len):
-    #print(i)
-
-    ####Ca-Cbを切って切ってjointを付ける#####
-    
-    matches = base_mol.GetSubstructMatches(MC_mol)[0]
-    #print(matches)
-    atom_index = matches[i*4 + 1]
-    #print('atom_index', atom_index)
-    Ca_atom = base_mol.GetAtomWithIdx(atom_index)
-    #print(Ca_atom.GetSymbol(), atom_index)
-    #print('with index', Chem.MolToSmiles(mol_with_atom_index(base_mol)))
-
-    #for atom in Ca_atom.GetNeighbors():
-    #  print('x:', atom.GetIdx(), atom.GetAtomicNum())
-
-    c_beta_idx = [x.GetIdx() for x in Ca_atom.GetNeighbors() if x.GetIdx() not in list(matches)][0]
-    atom_pair = [Ca_atom.GetIdx(), c_beta_idx]
-    #print('atom_pair', atom_pair)
-    bs = [base_mol.GetBondBetweenAtoms(atom_pair[0],atom_pair[1]).GetIdx()]
-    #print(bs)
-    fragments_mol = Chem.FragmentOnBonds(base_mol,bs,addDummies=True,dummyLabels=[(i+1,i+1)])
-    try:
-      fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    except:
-      print("error")
-
-    base_mol = fragments[0]
-
-    ####Ca-Hを切って切ってjointを付ける#####
-    matches = base_mol.GetSubstructMatches(MC_mol)[0]
-    atom_index = matches[i*4 + 1]
-    Ca_atom = base_mol.GetAtomWithIdx(atom_index)
-    
-    
-    h_idx = [x.GetIdx() for x in Ca_atom.GetNeighbors() if x.GetAtomicNum() == 1][0]
-    atom_pair = [Ca_atom.GetIdx(), h_idx]
-    #print('atom_pair', atom_pair)
-    bs = [base_mol.GetBondBetweenAtoms(atom_pair[0],atom_pair[1]).GetIdx()]
-    #print(bs)
-    fragments_mol = Chem.FragmentOnBonds(base_mol,bs,addDummies=True,dummyLabels=[(i+1+100,i+1+100)])
-    try:
-      fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    except:
-      print("error")
-    base_mol = fragments[0]
-
-    ####N-Hを切って切ってjointを付ける#####
-    matches = base_mol.GetSubstructMatches(MC_mol)[0]
-    atom_index = matches[i*4 + 0]
-    N_atom = base_mol.GetAtomWithIdx(atom_index)
-    
-    
-    h_idx = [x.GetIdx() for x in N_atom.GetNeighbors() if x.GetAtomicNum() == 1][0]
-    atom_pair = [N_atom.GetIdx(), h_idx]
-    #print('atom_pair', atom_pair)
-    bs = [base_mol.GetBondBetweenAtoms(atom_pair[0],atom_pair[1]).GetIdx()]
-    #print(bs)
-    fragments_mol = Chem.FragmentOnBonds(base_mol,bs,addDummies=True,dummyLabels=[(i+1+200,i+1+200)])
-    try:
-      fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    except:
-      print("error")
-    base_mol = fragments[0]
-
-
-    #Chem.SanitizeMol(base_mol)
-  base_mol = Chem.RemoveHs(base_mol)
-  base_smi = Chem.MolToSmiles(base_mol)
-  return base_smi, base_mol
-
-
-def make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list):
-  #各アミノ酸をつけるCaごとにX*が振られているので、アミノ酸をくっつける
-  AA_key_list = [AA_keys[v] for v in input_aa_list[4:] if v>=0]
-
-
-  linker_flag = 0
-  for i in range(len(AA_key_list)):
-    AA_key = AA_key_list[i]
-    #print('i', i, 'AA_key', AA_key)
-
-    #N-methileに絡むのはX2ととPのみなので先に処理処理
-    if AA_key == 'X2':
-      #### Main N-C ####
-      c_joint_mol = Chem.MolFromSmiles('[1*]C')
-      reaction_pattern = '[*:1][*'+str(i+1+200)+'].[*1][*:2] >> [*:1][*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-      joint_MC_mol = x[0][0]
-
-      #### Main Ca-R ####
-      h_joint_mol = Chem.MolFromSmiles('[1*][H]')
-      reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([joint_MC_mol, h_joint_mol])
-      #print(x)
-      joint_MC_mol = x[0][0]
-
-      #### Main Ca-H ####
-      h_joint_mol = Chem.MolFromSmiles('[1*][H]')
-      reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([joint_MC_mol, h_joint_mol])
-      joint_MC_mol = x[0][0]
-
-    elif AA_key == 'P':
-      aa_joint = '[50*]CCC[51*]'
-      aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-      reaction_pattern = '[*:1][*'+str(i+1+200)+'].[*50][*:2] >> [*:1][*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-      joint_MC_mol = x[0][0]
-
-      reaction_pattern = '([*:1]-['+str(i+1)+'*].[51*]-[*:2])>>[*:1]-[*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([joint_MC_mol])
-      joint_MC_mol = x[0][0]
-      
-
-      #### Main Ca-H ####
-      h_joint_mol = Chem.MolFromSmiles('[1*][H]')
-      reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([joint_MC_mol, h_joint_mol])
-      joint_MC_mol = x[0][0]
-
-    else:
-      #### Main N-H この処理はX2以外は共通 ####
-      h_joint_mol = Chem.MolFromSmiles('[1*][H]')
-      reaction_pattern = '[*:1][*'+str(i+1+200)+'].[*1][*:2] >> [*:1][*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([joint_MC_mol, h_joint_mol])
-      joint_MC_mol = x[0][0]
-
-
-
-      #if AA_key in ['P', 'X2', 'B', 'U', 'Z', 'S5', 'R8']:
-      #  print('例外処理')
-      if AA_key == 'B': #Caで5員環
-          aa_joint = '[50*]CCCC[51*]'
-          aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-          reaction_pattern = '[*:1][*'+str(i+1)+'].[*50][*:2] >> [*:1][*:2]'
-          rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-          x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-          joint_MC_mol = x[0][0]
-
-          reaction_pattern = '([*:1]-['+str(i+1+100)+'*].[51*]-[*:2])>>[*:1]-[*:2]'
-          rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-          x = rxn.RunReactants([joint_MC_mol])
-          joint_MC_mol = x[0][0]
-
-      elif AA_key == 'U': #'Aib', # 要対応 C(C)(C)にする
-        c_joint_mol = Chem.MolFromSmiles('[1*]C')
-        
-        #### Main Ca-R ####
-
-        reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-        joint_MC_mol = x[0][0]
-
-        #### Main Ca-H ####
-        reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-        joint_MC_mol = x[0][0]
-
-      elif AA_key == 'Z': #Caで6員環
-        aa_joint = '[50*]CCCCC[51*]'
-        aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-        reaction_pattern = '[*:1][*'+str(i+1)+'].[*50][*:2] >> [*:1][*:2]'
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-        joint_MC_mol = x[0][0]
-
-        reaction_pattern = '([*:1]-['+str(i+1+100)+'*].[51*]-[*:2])>>[*:1]-[*:2]'
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        x = rxn.RunReactants([joint_MC_mol])
-        joint_MC_mol = x[0][0]
-
-#'S5': 'C[1*]CCC\C=[300*]', #向きは難しい...自信ない C[*1]CCCC=[*300]
-#'R8': 'C[1*]CCCCCCC=[300*]', #C[*1]CCCCCCC=[*300] 
-
-      elif AA_key == 'S5': 
-        aa_joint = '[1*]CCCC=[300*]'
-        aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-        reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-        joint_MC_mol = x[0][0]
-
-        if linker_flag == 1:
-          reaction_pattern = '([C:1111][C:1]=[300*].[300*]=[C:2][C:2222])>>[C:1111]/[*:1]=[*:2]\[C:2222]'
-          rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-          x = rxn.RunReactants([joint_MC_mol])
-          joint_MC_mol = x[0][0]
-          joint_MC_mol.UpdatePropertyCache(strict=False)
-          #print('check', Chem.MolToSmiles(joint_MC_mol))
-
-        c_joint_mol = Chem.MolFromSmiles('[1*]C')
-        reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-        joint_MC_mol = x[0][0]
-
-        linker_flag = 1
-
-      elif AA_key == 'R8': 
-          aa_joint = '[1*]CCCCCCC=[300*]'
-          aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-          reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-          rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-          x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-          joint_MC_mol = x[0][0]
-
-          if linker_flag == 1:
-            reaction_pattern = '([C:1111][*:1]=[300*].[300*]=[*:2][C:2222])>>[C:1111]/[*:1]=[*:2]/[C:2222]'
-            rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-            x = rxn.RunReactants([joint_MC_mol])
-            joint_MC_mol = x[0][0]
-            joint_MC_mol.UpdatePropertyCache(strict=False)
-
-          c_joint_mol = Chem.MolFromSmiles('[1*]C')
-          reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
-          rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-          x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-          joint_MC_mol = x[0][0]
-
-          linker_flag = 1
-     
-        
-      else:
-        #### Main Ca-R ####
-        aa_joint = AA_joint[AA_key]
-        #print(aa_joint)
-        aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-        reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
-        #print(reaction_pattern)
-        #print(aa_joint_mol)
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-        #print(x)
-        joint_MC_mol = x[0][0]
-
-        #### Main Ca-H ####
-        h_joint_mol = Chem.MolFromSmiles('[1*][H]')
-        reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        x = rxn.RunReactants([joint_MC_mol, h_joint_mol])
-        joint_MC_mol = x[0][0]
-
-
-      
-
-
-    #print(Chem.MolToSmiles(joint_MC_mol))
-  joint_MC_mol = Chem.RemoveHs(joint_MC_mol)
-  #print(Chem.MolToSmiles(joint_MC_mol))
-
-  return Chem.MolToSmiles(joint_MC_mol), joint_MC_mol
-
-
-def generate_new_peptitde(base_index, input_aa_list):
-
-  pep_len = len([v for v in  peptide_feature_list[base_index][4:] if v >= 0])
-  #print('pep_len', pep_len)
-  base_smiles = smiles_list[base_index]
-
-  base_mol = Chem.MolFromSmiles(base_smiles)
-  base_mol = Chem.AddHs(base_mol)
-
-  MC_mol = Chem.MolFromSmiles('NCC(=O)'*(pep_len))
-  matches = base_mol.GetSubstructMatches(MC_mol)[0]
-  #print(len(matches), matches)
-
-  joint_MC_smi, joint_MC_mol = make_joint_MC(base_mol, MC_mol, pep_len)
-
-  #print('joint_MC_smi', joint_MC_smi)
-
-  AA_keys = list(AA_dict.keys())
-  peptide_smi, peptide_mol = make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list)
-
-  #print('peptide_smi', peptide_smi)
-
-  return peptide_smi, peptide_mol
-
-
-# In[47]:
-
 
 #出水先生に指定してもらったデータ
 #番号9, H-GIKKFLKSAKKFVKAFK-NH2, 
@@ -539,332 +159,14 @@ def generate_new_peptitde(base_index, input_aa_list):
 base_index = 8
 #B:24, U:25, Z:26, S5:27, R8:28, 
 input_aa_list = peptide_feature_list[base_index]
-new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list)
+new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
 
-
-# In[46]:
 
 
 #グリシン -H  [1*]-[H]
 #アラニン -CH3 [1*]-C
 #Lysine -CCCCN [1*]-CCCCN
 
-
-#ベースになるものとして, Glyでないくっつ
-def mol_with_atom_index( mol ):
-    atoms = mol.GetNumAtoms()
-    for idx in range( atoms ):
-        mol.GetAtomWithIdx( idx ).SetProp( 'molAtomMapNumber', str( mol.GetAtomWithIdx( idx ).GetIdx() ) )
-    return mol
-
-
-# # 分子構造編集
-
-def calc_smiles_skip_connection(smi, peptide_feature, skip = 4):
-  
-  pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
-  #print(pep_len, peptide_feature, smi)
-  mol = Chem.MolFromSmiles(smi)
-
-  #if the peptide has a linker, then cut it.
-  linker_count = 0
-  while mol.HasSubstructMatch(Chem.MolFromSmarts('[O][C:1]@[C:2]=[C:3]@[C:4][O]')): 
-    bis = mol.GetSubstructMatches(Chem.MolFromSmarts('[O][C:1]@[C:2]=[C:3]@[C:4][O]'))
-    #print(bis)
-    for bs in bis:
-      bs = [mol.GetBondBetweenAtoms(bs[2],bs[3]).GetIdx()]
-      #print(bs)
-      fragments_mol = Chem.FragmentOnBonds(mol,bs,addDummies=False)
-    try:
-      fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    except:
-      return None
-    mol = fragments[0]
-    linker_count += 1
-
-  #print('mol', Chem.MolToSmiles(mol))
-  MC_smiles = Chem.MolFromSmiles('NC(=O)C'*(pep_len))
-
-  #print(MC_smiles)
-
-  matches = mol.GetSubstructMatches(MC_smiles)[0]
-  #print(len(matches), matches)
-
-  vertical_list = [Chem.MolFromSmiles('[H][1*]')]*skip
-  #print([Chem.MolToSmiles(mol) for mol in vertical_list])
-  #print(vertical_list)
-  for i in range(pep_len):
-    skip_base = i % skip
-    #print(i, skip_base, i/skip)
-
-    if i < pep_len - skip:
-      bs = [mol.GetBondBetweenAtoms(matches[i*4 + 1],matches[i*4 + 3]).GetIdx(), mol.GetBondBetweenAtoms(matches[i*4 + 3],matches[i*4 + 4]).GetIdx()]
-      fragments_mol = Chem.FragmentOnBonds(mol,bs,addDummies=True,dummyLabels=[(int(i/skip+1), int(i/skip+1)), (int(i/skip + 2), int(i/skip + 2))])
-      fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-      for fragment in fragments:
-        if '['+str(int(i/skip+1))+'*]' in Chem.MolToSmiles(fragment) and '['+str(int(i/skip+2))+'*]' in Chem.MolToSmiles(fragment):
-          aa_fragment = fragment
-          break
-
-      reaction_pattern = '[*:1]['+str(int(i/skip+1))+'*].['+str(int(i/skip+1))+'*][*:2] >> [*:1][*:2]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      vertical_list[skip_base] = rxn.RunReactants([vertical_list[skip_base], aa_fragment])[0][0]
-    else:
-      #print('[*:1]['+str(int(i/skip+1))+'*].['+str(int(i/skip+1))+'*][H] >> [*:1][H]')
-      reaction_pattern = '[*:1]['+str(int(i/skip+1))+'*] >> [*:1][H]'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      vertical_list[skip_base] = rxn.RunReactants([vertical_list[skip_base]])[0][0]
-    #print([Chem.MolToSmiles(mol) for mol in vertical_list])
-  vertical_list = [Chem.MolFromSmiles(Chem.MolToSmiles(mol)) for mol in vertical_list]
-  return vertical_list
-
-
-def calc_feature_skip_connection(smi, peptide_feature, skip, feature, descriptor_dimension = 2048):
-  vertical_list = calc_smiles_skip_connection(smi, peptide_feature, skip = 4)
-  
- 
-  vertical_feature_list = []
-  for mol in vertical_list:
-    #print(Chem.MolToSmiles(mol))
-    if feature == 'Morgan_r2':
-      vertical_feature_list.append(AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension))
-    elif feature == 'Morgan_r4':
-      vertical_feature_list.append(AllChem.GetMorganFingerprintAsBitVect(mol, 4, descriptor_dimension))
-    elif feature == 'MACCS':
-      vertical_feature_list.append(AllChem.GetMACCSKeysFingerprint(mol))
-    elif feature == 'Morgan_r2_count':
-      vertical_feature_list.append(calc_MorganCount(mol, 2, descriptor_dimension))
-    elif feature == 'Morgan_r4_count':
-      vertical_feature_list.append(calc_MorganCount(mol, 4, descriptor_dimension))
-  #print(vertical_feature_list)
-  vertical_feature = np.mean(vertical_feature_list, axis = 0)
-  return vertical_feature
-
-
-def replaceP_smiles(smi, peptide_feature, base_atom = 'P'):
-  pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
-  mol = Chem.MolFromSmiles(smi)
-  tmp = Chem.MolFromSmiles('NC(=O)C'*(pep_len))
-  
-  #print('[N:1][C:2](=[O:3])[C:4] >> [N:1][C:2](=[O:3])[P:4]')
-  mc_pattern, pc_pattern = '', ''
-  for i in range(pep_len):
-    mc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])[C:'+str(i*4+4)+']'
-    pc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])[P:'+str(i*4+4)+']([H])([H])'
-
-  reaction_pattern = mc_pattern + '>>' + pc_pattern
-  rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-  x = rxn.RunReactants([mol])[0]
-  #print(x)
-  #print(Chem.MolToSmiles(x[0]))
-  return Chem.MolToSmiles(x[0])
-
-
-def calc_graph_connect(smi, peptide_feature, skip = 4):
-  pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
-  mol = Chem.MolFromSmiles(smi)
-  mol = Chem.AddHs(mol)
-  Chem.SanitizeMol(mol)
-  #print('H', Chem.MolToSmiles(mol))
-
-  
-  pc_pattern = 'NC(=O)P'*pep_len
-  #print(pc_pattern)
-  matches = mol.GetSubstructMatches(Chem.MolFromSmiles(pc_pattern))[0]
-  #print(len(matches), pep_len, matches)
-
-  
-
-  def get_HbondIdx(mol, p_index):
-    for bond in mol.GetAtomWithIdx(matches[p_index]).GetBonds():
-      if bond.GetEndAtom().GetSymbol() == 'H':
-        return mol.GetBondBetweenAtoms(matches[p_index],bond.GetEndAtom().GetIdx()).GetIdx()
-
-  for i in range(pep_len - skip):
-  #print('matches[0],matches[1]', matches[0],matches[1])
-  #print([mol.GetBondBetweenAtoms(matches[3],bond.GetEndAtom().GetIdx()).GetIdx() for bond in mol.GetAtomWithIdx(matches[3]).GetBonds() if bond.GetEndAtom().GetSymbol() == 'H'])
-    matches = mol.GetSubstructMatches(Chem.MolFromSmiles(pc_pattern))[0]
-    #print(len(matches), i*4+3, i*4+ 3 + skip*4)
-    bs = [get_HbondIdx(mol, i*4+3), get_HbondIdx(mol,  i*4+ 3 + skip*4)]
-    #bs = [mol.GetBondBetweenAtoms(matches[3],bond.GetEndAtom().GetIdx()).GetIdx() for bond in mol.GetAtomWithIdx(matches[3]).GetBonds() if bond.GetEndAtom().GetSymbol() == 'H']
-    fragments_mol = Chem.FragmentOnBonds(mol,bs,addDummies=True,dummyLabels=[(1,1), (2,2)])
-    fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    #print(Chem.MolToSmiles(Chem.RemoveHs(fragments[0])))
-    reaction_pattern = "([*1]-[P:1].[P:2]-[*2])>>[P:1]-[P:2]" #"([C:1]=[C;H2].[C:2]=[C;H2])>>[*:1]=[*:2]" #" [1*][*:1].[*:2][2*] >> [*:1][*:2]"
-    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-    mol = rxn.RunReactants([fragments[0]])[0][0]
-    #print(mol)
-  x = Chem.RemoveHs(mol)
-  #print(Chem.MolToSmiles(x))
-  return Chem.MolToSmiles(x)
-
-
-def calc_smiles_woMC(smi, peptide_feature, base_atom = 'P'):
-  pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
-  mol = Chem.MolFromSmiles(smi)
-  tmp = Chem.MolFromSmiles('NC(=O)C'*(pep_len))
-
-  #if the peptide has a linker, then cut it.
-  linker_count = 0
-  while mol.HasSubstructMatch(Chem.MolFromSmarts('[O][C:1]@[C:2]=[C:3]@[C:4][O]')): 
-
-    bis = mol.GetSubstructMatches(Chem.MolFromSmarts('[O][C:1]@[C:2]=[C:3]@[C:4][O]'))
-    print(bis)
-    for bs in bis:
-      bs = [mol.GetBondBetweenAtoms(bs[2],bs[3]).GetIdx()]
-      print(bs)
-      fragments_mol = Chem.FragmentOnBonds(mol,bs,addDummies=True,dummyLabels=[(300+linker_count, 300+linker_count)])
-  
-    try:
-      fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    except:
-      return None
-  
-    mol = fragments[0]
-    linker_count += 1
-  
-  #Aib, Ac6cについてもlinkerのような処理を行う. 一旦切っておいてラベルをつけておき最後に付け直す 
-  #Aib
-  Aib_count = 0
-  while mol.HasSubstructMatch(Chem.MolFromSmarts('[C][C&h0](!@[C])(N)C=O')): 
-    bis = mol.GetSubstructMatches(Chem.MolFromSmarts('[C][C&h0](!@[C])(N)C=O'))
-    print(bis)
-    bs = bis[0]
-    #bond = [mol.GetBondBetweenAtoms(bs[0],bs[1]).GetIdx()]
-    bond = [mol.GetBondBetweenAtoms(bs[1],bs[2]).GetIdx(), mol.GetBondBetweenAtoms(bs[0],bs[1]).GetIdx()]
-    fragments_mol = Chem.FragmentOnBonds(mol,bond,addDummies=True,dummyLabels=[(400+Aib_count, 400++Aib_count), (400+Aib_count, 400+Aib_count)])
-    fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    mol = fragments[0]
-
-    Aib_count += 1
-
-  #Ac6c
-  Ac6c_count = 0
-  while mol.HasSubstructMatch(Chem.MolFromSmarts('NC1(CCCCC1)C=O')): 
-    bis = mol.GetSubstructMatches(Chem.MolFromSmarts('NC1(CCCCC1)C=O'))
-    print(bis)
-    bs = bis[0]
-    print(bs)
-    bond = [mol.GetBondBetweenAtoms(bs[1],bs[2]).GetIdx()]
-    print(bond)
-    fragments_mol = Chem.FragmentOnBonds(mol,bond,addDummies=True,dummyLabels=[(600+Ac6c_count, 600+Ac6c_count)])
-  
-    fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    mol = fragments[0]
-    Ac6c_count += 1
-
-  
-  #Ac5c
-  Ac5c_count = 0
-  while mol.HasSubstructMatch(Chem.MolFromSmarts('NC1(CCCC1)C=O')): 
-    bis = mol.GetSubstructMatches(Chem.MolFromSmarts('NC1(CCCC1)C=O'))
-    print(bis)
-    bs = bis[0]
-    print(bs)
-    bond = [mol.GetBondBetweenAtoms(bs[1],bs[2]).GetIdx()]
-    print(bond)
-    fragments_mol = Chem.FragmentOnBonds(mol,bond,addDummies=True,dummyLabels=[(500+Ac5c_count, 500+Ac5c_count)])
-  
-    fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-    mol = fragments[0]
-    Ac5c_count += 1
-  print(Chem.MolToSmiles(mol))
-  
-
-  matches = mol.GetSubstructMatches(tmp)
-  print(len(matches), matches)
-  rep_core = AllChem.ReplaceCore(mol, tmp)
-
-  side_mol = Chem.GetMolFrags(rep_core, asMols=True)
-  Draw.MolsToGridImage([x for x in side_mol])
-
-  print([Chem.MolToSmiles(x) for x in side_mol])
-  side_smi_list = [Chem.MolToSmiles(x) for x in side_mol]
-  ordered_side_smi_list = []
-  for i in range(len(side_mol)):
-    for side_smi in side_smi_list:
-      if '['+str(i+1)+'*]' in side_smi:
-        ordered_side_smi_list.append(side_smi)
-        break
-  print(ordered_side_smi_list)
-  ordered_side_mol_list = [Chem.MolFromSmiles(smi) for smi in ordered_side_smi_list]
-
-  for i in range(len(side_mol)):
-    if i == 0:
-      if base_atom == 'P':
-        reaction_pattern = '[*:1][*:100].[*:2][*:101] >> [*201][P]([*:100])([*:101])'
-      elif base_atom == 'C':
-        reaction_pattern = '[*:1][*:100].[*:2][*:101] >> [*201][C]([*:100])([*:101])'
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([ordered_side_mol_list[0], ordered_side_mol_list[1]])[0][0]
-      print(i, Chem.MolToSmiles(x), Chem.MolToSmarts(x))
-    elif i < len(side_mol) - 2:
-      if base_atom == 'P':
-        reaction_pattern = '[*:'+str(i+2)+'][*:100].[*:'+str(200+i)+'][P:101] >>  [*'+str(200+i+1)+'][P]([*:100])([P:101])' #  [P:20'+str(i+1)+']([*:100])[P:20'+str(i)+'][*:101]'
-      elif base_atom == 'C':
-        reaction_pattern = '[*:'+str(i+2)+'][*:100].[*:'+str(200+i)+'][C:101] >>  [*'+str(200+i+1)+'][C]([*:100])([C:101])' #  [P:20'+str(i+1)+']([*:100])[P:20'+str(i)+'][*:101]'
-      
-      print(i, reaction_pattern)
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([ordered_side_mol_list[i+1], x])[0][0]
-      print(i, Chem.MolToSmiles(x), Chem.MolToSmarts(x))
-    elif i == len(side_mol) - 2:
-      if base_atom == 'P':
-        reaction_pattern = '[*:'+str(i+2)+'][*:100].[*:'+str(200+i)+'][P:101] >>  [P]([*:100])([P:101])'
-      elif base_atom == 'C':
-        reaction_pattern = '[*:'+str(i+2)+'][*:100].[*:'+str(200+i)+'][C:101] >>  [C]([*:100])([C:101])'
-      print(i, reaction_pattern)
-      rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-      x = rxn.RunReactants([ordered_side_mol_list[i+1], x])[0][0]
-      print(i, Chem.MolToSmiles(x))
-  
-
-
-  #一番最後にloop, メチル化(Aib(25), Ac6c(26)の処理)
-  #linker
-  for count in range(linker_count):
-    #通常処理
-    rxn = AllChem.ReactionFromSmarts('([*:1]=['+str(300+count)+'*].['+str(300+count)+'*]=[*:2])>>[*:1]=[*:2]')
-    x = rxn.RunReactants([x])[0][0]
-  
-
-  #Aib
-  #if x.HasSubstructMatch(Chem.MolFromSmarts('['+str(400+count)+'*][P:1]([P:3])[P:4][C:5][C:6][C:7][C:8][C:9]['+str(400+count)+'*]')):
-  for count in range(Aib_count):
-    #通常処理
-    if x.HasSubstructMatch(Chem.MolFromSmarts('['+str(400+count)+'*][P:1][P:2]['+str(400+count)+'*]')):
-      rxn = AllChem.ReactionFromSmarts('['+str(400+count)+'*][P:1][P:2](['+str(400+count)+'*])[P:3]>>[C][P:1]([C])[P:3]')
-      x = rxn.RunReactants([x])[0][0]
-    #終端にいる場合の処理
-    if x.HasSubstructMatch(Chem.MolFromSmarts('['+str(400+count)+'*][P:1]['+str(400+count)+'*]')):
-      rxn = AllChem.ReactionFromSmarts('['+str(400+count)+'*][P:1]['+str(400+count)+'*]>>[C][P:1][C]')
-      x = rxn.RunReactants([x])[0][0]
-  
-  #Ac6c
-  for count in range(Ac6c_count):
-    #通常処理
-    if x.HasSubstructMatch(Chem.MolFromSmarts('['+str(600+count)+'*][P:1]([P:3])[P:4][C:5][C:6][C:7][C:8][C:9]['+str(600+count)+'*]')):
-      rxn = AllChem.ReactionFromSmarts('['+str(600+count)+'*][P:1]([P:3])[P:4][C:5][C:6][C:7][C:8][C:9]['+str(600+count)+'*]>>[P:3][P:4]1([C:5][C:6][C:7][C:8][C:9]1)')
-      x = rxn.RunReactants([x])[0][0]
-    #終端にいる場合の処理
-    if x.HasSubstructMatch(Chem.MolFromSmarts('['+str(600+count)+'*][P:1][C:5][C:6][C:7][C:8][C:9]['+str(600+count)+'*]')):
-      rxn = AllChem.ReactionFromSmarts('['+str(600+count)+'*][P:1][C:5][C:6][C:7][C:8][C:9]['+str(600+count)+'*]>>[P:1]1([C:5][C:6][C:7][C:8][C:9]1)')
-      x = rxn.RunReactants([x])[0][0]
-  #Ac5c
-  for count in range(Ac5c_count):
-    #通常処理
-    if x.HasSubstructMatch(Chem.MolFromSmarts('['+str(500+count)+'*][P:1]([P:3])[P:4][C:5][C:6][C:7][C:8]['+str(500+count)+'*]')):
-      rxn = AllChem.ReactionFromSmarts('['+str(500+count)+'*][P:1]([P:3])[P:4][C:5][C:6][C:7][C:8]['+str(500+count)+'*]>>[P:3][P:4]1([C:5][C:6][C:7][C:8]1)')
-      x = rxn.RunReactants([x])[0][0]
-    #終端にいる場合の処理
-    if x.HasSubstructMatch(Chem.MolFromSmarts('['+str(500+count)+'*][P:1][C:5][C:6][C:7][C:8]['+str(500+count)+'*]')):
-      rxn = AllChem.ReactionFromSmarts('['+str(500+count)+'*][P:1][C:5][C:6][C:7][C:8]['+str(500+count)+'*]>>[P:1]1([C:5][C:6][C:7][C:8]1)')
-      x = rxn.RunReactants([x])[0][0]
-    
-
-  return Chem.MolToSmiles(x)
-  #Draw.MolsToGridImage([ordered_side_mol_list[0], ordered_side_mol_list[1], x])
-  
 
 #for i in range(len(smiles_list)):
 #5(Ac6c),8(主鎖検出でエラー, 元のSMILES修正でOK), 11(Aib, 架橋),13(Ac5c)
@@ -886,15 +188,6 @@ for i in range(len(smiles_list)):
 
 #Calculation of Fingerprint, descriptor
 descriptor_dimension = 1024
-
-def calc_MorganCount(mol, r = 2, dimension = 2048):
-  info = {}
-  _fp = AllChem.GetMorganFingerprint(mol, r, bitInfo=info)
-  count_list = [0] * dimension
-  for key in info:
-    pos = key % dimension
-    count_list[pos] += len(info[key])
-  return count_list
 
 radial = 4
 
@@ -952,21 +245,6 @@ v_skip7_Morgan_r2_count = [calc_feature_skip_connection(smiles_list[i], peptide_
 v_skip7_Morgan_r4_count = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'Morgan_r4_count', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
 v_skip7_MACCS_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'MACCS') for i in range(len(smiles_list))]
 """
-
-
-def calc_mordred_descriptor(mol_list):
-  #mordred
-  calc = Calculator(descriptors, ignore_3D = True)
-  mordred_df = calc.pandas(mol_list)
-
-  #modredののerrorをNaNで置き換え
-  df_descriptors = mordred_df.astype(str)
-  masks = df_descriptors.apply(lambda d: d.str.contains('[a-zA-Z]' ,na=False))
-  df_descriptors = df_descriptors[~masks]
-  df_descriptors = df_descriptors.astype(float)
-  modred_descriptor = df_descriptors.dropna(axis=1, how='any')
-
-  return modred_descriptor
 
 
 # # 予測モデル構築準備
@@ -1419,7 +697,7 @@ for mutation_info in mutation_info_list:
   for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
     input_aa_list[4+m_pos] = m_aa
 
-  new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list)
+  new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
   cand_data_list.append([mutation_info, new_peptide_smi])
   new_peptide_feature_list.append(input_aa_list)
   new_peptide_mol_list.append(new_peptide_mol)
@@ -1449,38 +727,6 @@ Cand_repP_skip7_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radia
 Cand_repP_skip7_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_skip7_list]
 Cand_repP_skip7_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
 Cand_repP_skip7_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
-
-
-def get_EI_list(train_Y, pred_y, sigma2_pred):
-  prediction = pred_y
-  sig = sigma2_pred**0.5
-
-  gamma = (prediction - np.max(train_Y)) / sig
-  ei = sig*(gamma*stats.norm.cdf(gamma) + stats.norm.pdf(gamma))
-
-  return ei
-
-def calc_EI_overfmax(fmean, fcov, fmax): #fmaxに基準値を入れる, fmaxに対する改善値の期待値を測る指標であることに注意.
-  fstd = np.sqrt(fcov)
-
-  temp1 = fmean - fmax
-  temp2 = temp1 / fstd
-  score = temp1 * stats.norm.cdf(temp2) + fstd * stats.norm.pdf(temp2)
-  return score
-
-def calc_PI_overfmax(fmean, fcov, fmax): #fmaxに基準値を入れる, fmaxを上回る確率であることに注意.
-  fstd = np.sqrt(fcov)
-
-  temp = (fmean - fmax) / fstd
-  score = stats.norm.cdf(temp)
-  return score
-
-def calc_PI_underfmin(fmean, fcov, fmin): #fminに基準値を入れる, fminを下回る確率であることに注意.
-  fstd = np.sqrt(fcov)
-
-  temp = (fmin - fmean) / fstd
-  score = stats.norm.cdf(temp)
-  return score
 
 
 #target_index
