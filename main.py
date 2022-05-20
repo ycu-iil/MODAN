@@ -366,6 +366,7 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
+    """
     if smiles_type == 'vertical_skip7':
         if feature == 'Morgan_r2':
             X = np.array(v_skip7_Morgan_r2_fp)[filled_index_list]
@@ -392,18 +393,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(v_skip4_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(v_skip4_Morgan_r4_count)[filled_index_list]
-
-
-    """
-    PCA_dim_reduction = True
-    print(100, len(X[0]))
-    #n_components = np.min([100, len(X[0])])
-    n_components = 35
-    if PCA_dim_reduction:
-      # PCAで次元削減
-      print('PCA calc')
-      pca = PCA(n_components=n_components, svd_solver='arpack')
-      X = pca.fit_transform(X)
     """
 
     if model == 'physbo' and standardize: 
