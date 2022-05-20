@@ -39,23 +39,23 @@ AA_joint = metadata.AA_joint
 AA_keys = list(AA_dict.keys())
 link_index_list = []
 for st in ['S5', 'R8', 's5', 'r8', '=']:
-  link_index_list.append(AA_keys.index(st))
+    link_index_list.append(AA_keys.index(st))
 print('link_index_list', link_index_list)
 
 
 SR_index_list = []
 for st in ['S', 'R', 's', 'r']:
-  SR_index_list.append(AA_keys.index(st))
+    SR_index_list.append(AA_keys.index(st))
 print('SR_index_list', SR_index_list)
 
 
 ct_list, nt_list = [], []
 for peptide in peptide_list:
-  #remove '\xa0' and ' ' in peptide string
-  peptide = unicodedata.normalize("NFKD", peptide).strip()
-  ct,aa_list,nt = peptide.split('-')
-  ct_list.append(ct)
-  nt_list.append(nt)
+    #remove '\xa0' and ' ' in peptide string
+    peptide = unicodedata.normalize("NFKD", peptide).strip()
+    ct,aa_list,nt = peptide.split('-')
+    ct_list.append(ct)
+    nt_list.append(nt)
 ct_list = list(set(ct_list))
 nt_list = list(set(nt_list))
 print('ct_list', ct_list)
@@ -65,84 +65,84 @@ print('nt_list', nt_list)
 peptide_feature_list = []
 #for peptide in peptide_list[35:36]:
 for peptide in peptide_list:
-  print(peptide)
-  peptide = unicodedata.normalize("NFKD", peptide).strip()
-  ct,aa_list,nt = peptide.split('-')
-  ct_index = ct_list.index(ct)
-  nt_index = nt_list.index(nt)
+    print(peptide)
+    peptide = unicodedata.normalize("NFKD", peptide).strip()
+    ct,aa_list,nt = peptide.split('-')
+    ct_index = ct_list.index(ct)
+    nt_index = nt_list.index(nt)
   
-  print(aa_list)
-  ##Indexing AA-sequence
-  tmp_list = []
-  for i, AA_key in enumerate(AA_dict.keys()):
-    res = re.finditer(AA_key, aa_list)
-    for s in res:
-        tmp_list.append([s.span()[0], i])
-        print(i, AA_key, s.span()[0])
-  tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
+    print(aa_list)
+    ##Indexing AA-sequence
+    tmp_list = []
+    for i, AA_key in enumerate(AA_dict.keys()):
+        res = re.finditer(AA_key, aa_list)
+        for s in res:
+            tmp_list.append([s.span()[0], i])
+            print(i, AA_key, s.span()[0])
+    tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
 
-  #'S', 'S5'等の重複削除
-  print('tmp_list', tmp_list)
-  new_tmp_list = []
-  for tmp in tmp_list:
-    if tmp[0]+1 < len(aa_list):
-      if tmp[1] in SR_index_list:
-        if aa_list[tmp[0]+1] in ['5', '8']:
-          continue
-    new_tmp_list.append(tmp)
-  tmp_list = new_tmp_list
-  print('removed_tmp_list', tmp_list)
+    #'S', 'S5'等の重複削除
+    print('tmp_list', tmp_list)
+    new_tmp_list = []
+    for tmp in tmp_list:
+        if tmp[0]+1 < len(aa_list):
+            if tmp[1] in SR_index_list:
+                if aa_list[tmp[0]+1] in ['5', '8']:
+                    continue
+        new_tmp_list.append(tmp)
+    tmp_list = new_tmp_list
+    print('removed_tmp_list', tmp_list)
  
 
-  AA_index_list = []
-  link_list = []
+    AA_index_list = []
+    link_list = []
 
-  for pair in tmp_list:
-    if pair[1] in link_index_list:
-      link_list.append(len(AA_index_list)+1)
-    if pair[1] not in [AA_keys.index('=')]:
-      AA_index_list.append(pair[1])
+    for pair in tmp_list:
+        if pair[1] in link_index_list:
+            link_list.append(len(AA_index_list)+1)
+        if pair[1] not in [AA_keys.index('=')]:
+            AA_index_list.append(pair[1])
 
-  if len(link_list) == 0:
-    link_list = [-1, -1]
-  peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
-  print(peptide_feature)
-  peptide_feature_list.append(peptide_feature)
+    if len(link_list) == 0:
+        link_list = [-1, -1]
+    peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
+    print(peptide_feature)
+    peptide_feature_list.append(peptide_feature)
 
 
 
 for i, pf in enumerate(peptide_feature_list):
   
-  seq = peptide_feature2AA_seq(pf, AA_keys, ct_list, nt_list)
-  print(i, seq)
-  print(i, peptide_list[i])
-  print('')
+    seq = peptide_feature2AA_seq(pf, AA_keys, ct_list, nt_list)
+    print(i, seq)
+    print(i, peptide_list[i])
+    print('')
 
 #Check
 
 AA_keys = list(AA_dict.keys())
 
 for i, pf in enumerate(peptide_feature_list):
-  aa_seq = ''
-  for j, k in enumerate(pf[4:]):
-    if j in pf[2:4]:
-      aa_seq += '='
-    aa_seq += AA_keys[k]
+    aa_seq = ''
+    for j, k in enumerate(pf[4:]):
+        if j in pf[2:4]:
+            aa_seq += '='
+        aa_seq += AA_keys[k]
   
-  seq = ct_list[pf[0]]+'-'+aa_seq+'-'+nt_list[pf[1]]
-  print(i, seq)
-  print(i, peptide_list[i])
-  print('')
+    seq = ct_list[pf[0]]+'-'+aa_seq+'-'+nt_list[pf[1]]
+    print(i, seq)
+    print(i, peptide_list[i])
+    print('')
 
 #padding
 max_len = np.max([len(v) for v in peptide_feature_list])
 print('max_len', max_len)
 for peptide_feature in peptide_feature_list:
-  pad_len = max_len - len(peptide_feature)
-  peptide_feature += [-2] * pad_len
+    pad_len = max_len - len(peptide_feature)
+    peptide_feature += [-2] * pad_len
 
 for fl in peptide_feature_list:
-  print(fl)
+    print(fl)
 # # 新規ペプチド生成
 # 
 
@@ -172,16 +172,16 @@ new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_li
 #5(Ac6c),8(主鎖検出でエラー, 元のSMILES修正でOK), 11(Aib, 架橋),13(Ac5c)
 smiles_woMC_list = []
 for i in range(len(smiles_list)):
-  print(i, smiles_list[i])
-  seq_smi = calc_smiles_woMC(smiles_list[i], peptide_feature_list[i])
-  smiles_woMC_list.append(seq_smi)
+    print(i, smiles_list[i])
+    seq_smi = calc_smiles_woMC(smiles_list[i], peptide_feature_list[i])
+    smiles_woMC_list.append(seq_smi)
 
 
 smiles_repP_list = []
 for i in range(len(smiles_list)):
-  print(i, smiles_list[i])
-  seq_smi = replaceP_smiles(smiles_list[i], peptide_feature_list[i])
-  smiles_repP_list.append(seq_smi)
+    print(i, smiles_list[i])
+    seq_smi = replaceP_smiles(smiles_list[i], peptide_feature_list[i])
+    smiles_repP_list.append(seq_smi)
 
 
 # # 特徴量計算
@@ -251,290 +251,289 @@ v_skip7_MACCS_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature
 
 def GP_predict(train_X, test_X, train_y, test_y):
 
-  cov = physbo.gp.cov.gauss(train_X,ard = False )
-  mean = physbo.gp.mean.const()
-  lik = physbo.gp.lik.gauss()
-  gp = physbo.gp.model(lik=lik,mean=mean,cov=cov)
-  config = physbo.misc.set_config()
+    cov = physbo.gp.cov.gauss(train_X,ard = False )
+    mean = physbo.gp.mean.const()
+    lik = physbo.gp.lik.gauss()
+    gp = physbo.gp.model(lik=lik,mean=mean,cov=cov)
+    config = physbo.misc.set_config()
 
-  gp.fit(train_X, train_y, config)
-  gp.print_params()
-  gp.prepare(train_X, train_y)
+    gp.fit(train_X, train_y, config)
+    gp.print_params()
+    gp.prepare(train_X, train_y)
 
-  train_fmean = gp.get_post_fmean(train_X, train_X) 
-  train_fcov = gp.get_post_fcov(train_X, train_X)
+    train_fmean = gp.get_post_fmean(train_X, train_X) 
+    train_fcov = gp.get_post_fcov(train_X, train_X)
 
-  test_fmean = gp.get_post_fmean(train_X, test_X) 
-  test_fcov = gp.get_post_fcov(train_X, test_X)
+    test_fmean = gp.get_post_fmean(train_X, test_X) 
+    test_fcov = gp.get_post_fcov(train_X, test_X)
 
-  return [train_fmean, train_fcov], [test_fmean, test_fcov] 
+    return [train_fmean, train_fcov], [test_fmean, test_fcov] 
 
 
 def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log = False, standardize = False):
 
-  target_name = data.keys()[target_index]
-  exp_list = data[target_name][:82]
-  print(target_name)
+    target_name = data.keys()[target_index]
+    exp_list = data[target_name][:82]
+    print(target_name)
 
-  #数値データの修正
-  filled_index_list = []
-  exp_modified_list = []
-  for i, v in enumerate(exp_list):
-    if str(v)[0] == '>':
-      exp_modified_list.append(float(str(v)[1:])*2)
-      filled_index_list.append(i)
-    elif str(v)[0] == '<':
-      exp_modified_list.append(float(str(v)[1:])/2)
-      filled_index_list.append(i)
+    #数値データの修正
+    filled_index_list = []
+    exp_modified_list = []
+    for i, v in enumerate(exp_list):
+        if str(v)[0] == '>':
+            exp_modified_list.append(float(str(v)[1:])*2)
+            filled_index_list.append(i)
+        elif str(v)[0] == '<':
+            exp_modified_list.append(float(str(v)[1:])/2)
+            filled_index_list.append(i)
+        else:
+            if not math.isnan(v):
+                filled_index_list.append(i)
+            exp_modified_list.append(v)
+    print(len(filled_index_list))
+    if value_log == True:
+        exp_modified_list = np.log10(exp_modified_list)
+    plt.hist(np.array(exp_modified_list)[filled_index_list])
+    plt.title(target_name+' Log10='+str(value_log))
+    plt.xlabel(target_name)
+    plt.ylabel('frequency')
+    if target_name == 'Δ[θ] ([θ]222/[θ]208)':
+        plt.savefig('./result/helix-like_dist_log'+str(value_log)+'.png', dpi = 300)
     else:
-      if not math.isnan(v):
-        filled_index_list.append(i)
-      exp_modified_list.append(v)
-  print(len(filled_index_list))
-  if value_log == True:
-    exp_modified_list = np.log10(exp_modified_list)
-  plt.hist(np.array(exp_modified_list)[filled_index_list])
-  plt.title(target_name+' Log10='+str(value_log))
-  plt.xlabel(target_name)
-  plt.ylabel('frequency')
-  if target_name == 'Δ[θ] ([θ]222/[θ]208)':
-    plt.savefig('./result/helix-like_dist_log'+str(value_log)+'.png', dpi = 300)
-  else:
-    plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
-  plt.show()
+        plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
+    plt.show()
 
 
-  print('feature', feature, smiles_type)
-  if smiles_type == 'original':
-    if feature == 'one-hot':
-      X = np.array(peptide_feature_list)[filled_index_list]
-    elif feature == 'Morgan_r2':
-      X = np.array(Morgan_r2_fp)[filled_index_list]
-    elif feature == 'Morgan_r4':
-      X = np.array(Morgan_r4_fp)[filled_index_list]
-    elif feature == 'MACCS':
-      X = np.array(MACCS_fp)[filled_index_list]
-    elif feature == 'mordred':
-      X = mordred_descriptor.values[filled_index_list]
-    elif feature == 'Morgan_r2_count':
-      X = np.array(Morgan_r2_count)[filled_index_list]
-    elif feature == 'Morgan_r4_count':
-      X = np.array(Morgan_r4_count)[filled_index_list]
-    elif feature == 'MACCS+Morgan_r4_count':
-      X0 = np.array(MACCS_fp)[filled_index_list]
-      X1 = np.array(Morgan_r4_count)[filled_index_list]
-      X = np.concatenate([X0, X1], axis = 1)
-  if smiles_type == 'smiles_woMC':
-    if feature == 'Morgan_r2':
-      X = np.array(woMC_Morgan_r2_fp)[filled_index_list]
-    elif feature == 'Morgan_r4':
-      X = np.array(woMC_Morgan_r4_fp)[filled_index_list]
-    elif feature == 'MACCS':
-      X = np.array(woMC_MACCS_fp)[filled_index_list]
-    elif feature == 'mordred':
-      X = woMC_mordred_descriptor.values[filled_index_list]
-    elif feature == 'Morgan_r2_count':
-      X = np.array(woMC_Morgan_r2_count)[filled_index_list]
-    elif feature == 'Morgan_r4_count':
-      X = np.array(woMC_Morgan_r4_count)[filled_index_list]
-  if smiles_type == 'smiles_repP':
-    if feature == 'Morgan_r2':
-      X = np.array(repP_Morgan_r2_fp)[filled_index_list]
-    elif feature == 'Morgan_r4':
-      X = np.array(repP_Morgan_r4_fp)[filled_index_list]
-    elif feature == 'MACCS':
-      X = np.array(repP_MACCS_fp)[filled_index_list]
-    elif feature == 'mordred':
-      X = repP_mordred_descriptor.values[filled_index_list]
-    elif feature == 'Morgan_r2_count':
-      X = np.array(repP_Morgan_r2_count)[filled_index_list]
-    elif feature == 'Morgan_r4_count':
-      X = np.array(repP_Morgan_r4_count)[filled_index_list]
-  if smiles_type == 'smiles_repP_skip4':
-    if feature == 'Morgan_r2':
-      X = np.array(repP_skip4_Morgan_r2_fp)[filled_index_list]
-    elif feature == 'Morgan_r4':
-      X = np.array(repP_skip4_Morgan_r4_fp)[filled_index_list]
-    elif feature == 'MACCS':
-      X = np.array(repP_skip4_MACCS_fp)[filled_index_list]
-    elif feature == 'mordred':
-      X = repP_skip4_mordred_descriptor.values[filled_index_list]
-    elif feature == 'Morgan_r2_count':
-      X = np.array(repP_skip4_Morgan_r2_count)[filled_index_list]
-    elif feature == 'Morgan_r4_count':
-      X = np.array(repP_skip4_Morgan_r4_count)[filled_index_list]
-  if smiles_type == 'smiles_repP_skip7':
-    if feature == 'Morgan_r2':
-      X = np.array(repP_skip7_Morgan_r2_fp)[filled_index_list]
-    elif feature == 'Morgan_r4':
-      X = np.array(repP_skip7_Morgan_r4_fp)[filled_index_list]
-    elif feature == 'MACCS':
-      X = np.array(repP_skip7_MACCS_fp)[filled_index_list]
-    elif feature == 'mordred':
-      X = repP_skip7_mordred_descriptor.values[filled_index_list]
-    elif feature == 'Morgan_r2_count':
-      X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
-    elif feature == 'Morgan_r4_count':
-      X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
-  if smiles_type == 'vertical_skip7':
-    if feature == 'Morgan_r2':
-      X = np.array(v_skip7_Morgan_r2_fp)[filled_index_list]
-    elif feature == 'Morgan_r4':
-      X = np.array(v_skip7_Morgan_r4_fp)[filled_index_list]
-    elif feature == 'MACCS':
-      X = np.array(v_skip7_MACCS_fp)[filled_index_list]
-    elif feature == 'mordred':
-      X = np.array(v_skip7_mordred_descriptor)[filled_index_list]
-    elif feature == 'Morgan_r2_count':
-      X = np.array(v_skip7_Morgan_r2_count)[filled_index_list]
-    elif feature == 'Morgan_r4_count':
-      X = np.array(v_skip7_Morgan_r4_count)[filled_index_list]
-  if smiles_type == 'vertical_skip4':
-    if feature == 'Morgan_r2':
-      X = np.array(v_skip4_Morgan_r2_fp)[filled_index_list]
-    elif feature == 'Morgan_r4':
-      X = np.array(v_skip4_Morgan_r4_fp)[filled_index_list]
-    elif feature == 'MACCS':
-      X = np.array(v_skip4_MACCS_fp)[filled_index_list]
-    elif feature == 'mordred':
-      X = np.array(v_skip4_mordred_descriptor)[filled_index_list]
-    elif feature == 'Morgan_r2_count':
-      X = np.array(v_skip4_Morgan_r2_count)[filled_index_list]
-    elif feature == 'Morgan_r4_count':
-      X = np.array(v_skip4_Morgan_r4_count)[filled_index_list]
+    print('feature', feature, smiles_type)
+    if smiles_type == 'original':
+        if feature == 'one-hot':
+            X = np.array(peptide_feature_list)[filled_index_list]
+        elif feature == 'Morgan_r2':
+            X = np.array(Morgan_r2_fp)[filled_index_list]
+        elif feature == 'Morgan_r4':
+            X = np.array(Morgan_r4_fp)[filled_index_list]
+        elif feature == 'MACCS':
+            X = np.array(MACCS_fp)[filled_index_list]
+        elif feature == 'mordred':
+            X = mordred_descriptor.values[filled_index_list]
+        elif feature == 'Morgan_r2_count':
+            X = np.array(Morgan_r2_count)[filled_index_list]
+        elif feature == 'Morgan_r4_count':
+            X = np.array(Morgan_r4_count)[filled_index_list]
+        elif feature == 'MACCS+Morgan_r4_count':
+            X0 = np.array(MACCS_fp)[filled_index_list]
+            X1 = np.array(Morgan_r4_count)[filled_index_list]
+            X = np.concatenate([X0, X1], axis = 1)
+    if smiles_type == 'smiles_woMC':
+        if feature == 'Morgan_r2':
+            X = np.array(woMC_Morgan_r2_fp)[filled_index_list]
+        elif feature == 'Morgan_r4':
+            X = np.array(woMC_Morgan_r4_fp)[filled_index_list]
+        elif feature == 'MACCS':
+            X = np.array(woMC_MACCS_fp)[filled_index_list]
+        elif feature == 'mordred':
+            X = woMC_mordred_descriptor.values[filled_index_list]
+        elif feature == 'Morgan_r2_count':
+            X = np.array(woMC_Morgan_r2_count)[filled_index_list]
+        elif feature == 'Morgan_r4_count':
+            X = np.array(woMC_Morgan_r4_count)[filled_index_list]
+    if smiles_type == 'smiles_repP':
+        if feature == 'Morgan_r2':
+            X = np.array(repP_Morgan_r2_fp)[filled_index_list]
+        elif feature == 'Morgan_r4':
+            X = np.array(repP_Morgan_r4_fp)[filled_index_list]
+        elif feature == 'MACCS':
+            X = np.array(repP_MACCS_fp)[filled_index_list]
+        elif feature == 'mordred':
+            X = repP_mordred_descriptor.values[filled_index_list]
+        elif feature == 'Morgan_r2_count':
+            X = np.array(repP_Morgan_r2_count)[filled_index_list]
+        elif feature == 'Morgan_r4_count':
+            X = np.array(repP_Morgan_r4_count)[filled_index_list]
+    if smiles_type == 'smiles_repP_skip4':
+        if feature == 'Morgan_r2':
+            X = np.array(repP_skip4_Morgan_r2_fp)[filled_index_list]
+        elif feature == 'Morgan_r4':
+            X = np.array(repP_skip4_Morgan_r4_fp)[filled_index_list]
+        elif feature == 'MACCS':
+            X = np.array(repP_skip4_MACCS_fp)[filled_index_list]
+        elif feature == 'mordred':
+            X = repP_skip4_mordred_descriptor.values[filled_index_list]
+        elif feature == 'Morgan_r2_count':
+            X = np.array(repP_skip4_Morgan_r2_count)[filled_index_list]
+        elif feature == 'Morgan_r4_count':
+            X = np.array(repP_skip4_Morgan_r4_count)[filled_index_list]
+    if smiles_type == 'smiles_repP_skip7':
+        if feature == 'Morgan_r2':
+            X = np.array(repP_skip7_Morgan_r2_fp)[filled_index_list]
+        elif feature == 'Morgan_r4':
+            X = np.array(repP_skip7_Morgan_r4_fp)[filled_index_list]
+        elif feature == 'MACCS':
+            X = np.array(repP_skip7_MACCS_fp)[filled_index_list]
+        elif feature == 'mordred':
+            X = repP_skip7_mordred_descriptor.values[filled_index_list]
+        elif feature == 'Morgan_r2_count':
+            X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
+        elif feature == 'Morgan_r4_count':
+            X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
+    if smiles_type == 'vertical_skip7':
+        if feature == 'Morgan_r2':
+            X = np.array(v_skip7_Morgan_r2_fp)[filled_index_list]
+        elif feature == 'Morgan_r4':
+            X = np.array(v_skip7_Morgan_r4_fp)[filled_index_list]
+        elif feature == 'MACCS':
+            X = np.array(v_skip7_MACCS_fp)[filled_index_list]
+        elif feature == 'mordred':
+            X = np.array(v_skip7_mordred_descriptor)[filled_index_list]
+        elif feature == 'Morgan_r2_count':
+            X = np.array(v_skip7_Morgan_r2_count)[filled_index_list]
+        elif feature == 'Morgan_r4_count':
+            X = np.array(v_skip7_Morgan_r4_count)[filled_index_list]
+    if smiles_type == 'vertical_skip4':
+        if feature == 'Morgan_r2':
+            X = np.array(v_skip4_Morgan_r2_fp)[filled_index_list]
+        elif feature == 'Morgan_r4':
+            X = np.array(v_skip4_Morgan_r4_fp)[filled_index_list]
+        elif feature == 'MACCS':
+            X = np.array(v_skip4_MACCS_fp)[filled_index_list]
+        elif feature == 'mordred':
+            X = np.array(v_skip4_mordred_descriptor)[filled_index_list]
+        elif feature == 'Morgan_r2_count':
+            X = np.array(v_skip4_Morgan_r2_count)[filled_index_list]
+        elif feature == 'Morgan_r4_count':
+            X = np.array(v_skip4_Morgan_r4_count)[filled_index_list]
 
 
-  """
-  PCA_dim_reduction = True
-  print(100, len(X[0]))
-  #n_components = np.min([100, len(X[0])])
-  n_components = 35
-  if PCA_dim_reduction:
-    # PCAで次元削減
-    print('PCA calc')
-    pca = PCA(n_components=n_components, svd_solver='arpack')
-    X = pca.fit_transform(X)
-  """
+    """
+    PCA_dim_reduction = True
+    print(100, len(X[0]))
+    #n_components = np.min([100, len(X[0])])
+    n_components = 35
+    if PCA_dim_reduction:
+      # PCAで次元削減
+      print('PCA calc')
+      pca = PCA(n_components=n_components, svd_solver='arpack')
+      X = pca.fit_transform(X)
+    """
 
-  if model == 'physbo' and standardize:
-    
-    ss = preprocessing.StandardScaler()
-    X = ss.fit_transform(X)
+    if model == 'physbo' and standardize: 
+        ss = preprocessing.StandardScaler()
+        X = ss.fit_transform(X)
   
-  y = np.array(exp_modified_list)[filled_index_list]
+    y = np.array(exp_modified_list)[filled_index_list]
 
-  print(X)
-  print(y)
+    print(X)
+    print(y)
 
-  kf = KFold(n_splits = fold_n, shuffle = True, random_state=0)
+    kf = KFold(n_splits = fold_n, shuffle = True, random_state=0)
 
-  y_pred_list = []
-  y_test_list = []
-  y_index_list = []
-    
-  def objective(trial):
-    params = {
-        'lambda_l1': trial.suggest_float('lambda_l1', 1e-8, 10.0, log=True),
-        'lambda_l2': trial.suggest_float('lambda_l2', 1e-8, 10.0, log=True),
-        'num_leaves': trial.suggest_int('num_leaves', 2, 256),
-        'feature_fraction': trial.suggest_float('feature_fraction', 0.4, 1.0),
-        'bagging_fraction': trial.suggest_float('bagging_fraction', 0.4, 1.0),
-        'bagging_freq': trial.suggest_int('bagging_freq', 1, 7),
-        'min_child_samples': trial.suggest_int('min_child_samples', 5, 100)
-    }
-    train_model.set_params(**params)
-    scores = cross_val_score(train_model, X_train, y_train, cv=cv,
-                            scoring='neg_mean_squared_error', fit_params=fit_params, n_jobs=-1)
-    return scores.mean()
-    
-  for train_index, test_index in kf.split(X):
-    print(train_index, test_index)
-    X_train = X[train_index]
-    y_train = y[train_index]
-    X_test = X[test_index]
-    y_test = y[test_index]
+    y_pred_list = []
+    y_test_list = []
+    y_index_list = []
 
-    if model == 'RF':
-      train_model = RandomForestRegressor()
-      train_model.fit(X_train, y_train)
-    elif model == 'lightgbm':
-      seed = 0
-      train_model = lgb.LGBMRegressor(boosting_type='gbdt', objective='regression',
-                      random_state=seed, n_estimators=100)
-      fit_params = {
-          'verbose': 2,
-          'early_stopping_rounds': 10,
-          'eval_metric': 'mean_squared_error',
-          'eval_set': [(X_train, y_train)]
-          }
-      cv = KFold(n_splits=5, shuffle=True, random_state=seed)
-      study = optuna.create_study(direction='maximize',sampler=optuna.samplers.TPESampler(seed=seed))
-      study.optimize(objective, n_trials=200)
-      best_params = study.best_trial.params
-      train_model.set_params(**best_params)
-      train_model.fit(X_train, y_train)
+    def objective(trial):
+        params = {
+            'lambda_l1': trial.suggest_float('lambda_l1', 1e-8, 10.0, log=True),
+            'lambda_l2': trial.suggest_float('lambda_l2', 1e-8, 10.0, log=True),
+            'num_leaves': trial.suggest_int('num_leaves', 2, 256),
+            'feature_fraction': trial.suggest_float('feature_fraction', 0.4, 1.0),
+            'bagging_fraction': trial.suggest_float('bagging_fraction', 0.4, 1.0),
+            'bagging_freq': trial.suggest_int('bagging_freq', 1, 7),
+            'min_child_samples': trial.suggest_int('min_child_samples', 5, 100)
+        }
+        train_model.set_params(**params)
+        scores = cross_val_score(train_model, X_train, y_train, cv=cv,
+                                scoring='neg_mean_squared_error', fit_params=fit_params, n_jobs=-1)
+        return scores.mean()
 
+    for train_index, test_index in kf.split(X):
+        print(train_index, test_index)
+        X_train = X[train_index]
+        y_train = y[train_index]
+        X_test = X[test_index]
+        y_test = y[test_index]
 
-      #train_model = lgb.LGBMRegressor() # モデルのインスタンスの作成
-      #train_model.fit(X_train, y_train) # モデルの学習
-      y_pred = train_model.predict(X_test)
-      y_train_pred = train_model.predict(X_train)
-
-      y_pred_list += list(y_pred)
-      y_test_list += list(y_test)
-
-    elif model == 'physbo':
-      [y_train_pred, y_train_pred_cov], [y_pred, y_pred_cov] = GP_predict(X_train, X_test, y_train, y_test)
-      train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
-      train_r = np.corrcoef(y_train, y_train_pred)[0][1]
-      print('train_rmse', train_rmse, 'train_r', train_r)
-
-      y_pred_list += list(y_pred)
-      y_test_list += list(y_test)
+        if model == 'RF':
+            train_model = RandomForestRegressor()
+            train_model.fit(X_train, y_train)
+        elif model == 'lightgbm':
+            seed = 0
+            train_model = lgb.LGBMRegressor(boosting_type='gbdt', objective='regression',
+                            random_state=seed, n_estimators=100)
+            fit_params = {
+                'verbose': 2,
+                'early_stopping_rounds': 10,
+                'eval_metric': 'mean_squared_error',
+                'eval_set': [(X_train, y_train)]
+                }
+            cv = KFold(n_splits=5, shuffle=True, random_state=seed)
+            study = optuna.create_study(direction='maximize',sampler=optuna.samplers.TPESampler(seed=seed))
+            study.optimize(objective, n_trials=200)
+            best_params = study.best_trial.params
+            train_model.set_params(**best_params)
+            train_model.fit(X_train, y_train)
 
 
-    y_index_list += list(test_index)
-    #r2 = r2_score(y_test, y_pred),
-    #rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    #print(r2, rmse)
+            #train_model = lgb.LGBMRegressor() # モデルのインスタンスの作成
+            #train_model.fit(X_train, y_train) # モデルの学習
+            y_pred = train_model.predict(X_test)
+            y_train_pred = train_model.predict(X_train)
+
+            y_pred_list += list(y_pred)
+            y_test_list += list(y_test)
+
+        elif model == 'physbo':
+            [y_train_pred, y_train_pred_cov], [y_pred, y_pred_cov] = GP_predict(X_train, X_test, y_train, y_test)
+            train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
+            train_r = np.corrcoef(y_train, y_train_pred)[0][1]
+            print('train_rmse', train_rmse, 'train_r', train_r)
+
+            y_pred_list += list(y_pred)
+            y_test_list += list(y_test)
+
+
+        y_index_list += list(test_index)
+        #r2 = r2_score(y_test, y_pred),
+        #rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        #print(r2, rmse)
+        r = np.corrcoef(y_test_list, y_pred_list)[0][1]
+        r2 = r2_score(y_test_list, y_pred_list)
+        #auc = roc_auc_score(y_test_list, y_pred_list)
+        rmse = np.sqrt(mean_squared_error(y_test_list, y_pred_list))
+        print(len(y_pred_list), 'r', r, 'r2', r2, 'RMSE', rmse, smiles_type, model, feature, fold_n, target_index)
+
+
+
+    # Feature Importance
+    #fti = clf_rf.feature_importances_   
+
     r = np.corrcoef(y_test_list, y_pred_list)[0][1]
     r2 = r2_score(y_test_list, y_pred_list)
     #auc = roc_auc_score(y_test_list, y_pred_list)
+
     rmse = np.sqrt(mean_squared_error(y_test_list, y_pred_list))
-    print(len(y_pred_list), 'r', r, 'r2', r2, 'RMSE', rmse, smiles_type, model, feature, fold_n, target_index)
-    
+    print('RESULT', model, feature, fold_n, target_index)
+    print('r2', r2, 'r', r, 'rmse', rmse)
+    print('\n\n\n\n\n\n\n\n\n\n\n')
 
-
-  # Feature Importance
-  #fti = clf_rf.feature_importances_   
-
-  r = np.corrcoef(y_test_list, y_pred_list)[0][1]
-  r2 = r2_score(y_test_list, y_pred_list)
-  #auc = roc_auc_score(y_test_list, y_pred_list)
-
-  rmse = np.sqrt(mean_squared_error(y_test_list, y_pred_list))
-  print('RESULT', model, feature, fold_n, target_index)
-  print('r2', r2, 'r', r, 'rmse', rmse)
-  print('\n\n\n\n\n\n\n\n\n\n\n')
-
-  plt.scatter(y_test_list, y_pred_list)
-  plt.plot([np.min(y_test_list), np.max(y_test_list)], [np.min(y_test_list), np.max(y_test_list)])
-  for i in range(len(y_test_list)):
-    plt.annotate(str(i+1), (y_test_list[i]+0.02, y_pred_list[i]+0.02))
-  plt.title(target_name+' (N='+str(len(y_test_list))+', model = '+model+') r='+str(round(r, 3)))
-  plt.grid()
-  if value_log:
-    plt.xlabel('Experimental value (log)')
-    plt.ylabel('Predicted value (log)')
-  else:
-    plt.xlabel('Experimental value')
-    plt.ylabel('Predicted value')
-  plt.axes().set_aspect('equal')
-  if target_name == 'Δ[θ] ([θ]222/[θ]208)':
-    plt.savefig('./result/helix-like_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
-  else:
-    plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
-  plt.show()
+    plt.scatter(y_test_list, y_pred_list)
+    plt.plot([np.min(y_test_list), np.max(y_test_list)], [np.min(y_test_list), np.max(y_test_list)])
+    for i in range(len(y_test_list)):
+        plt.annotate(str(i+1), (y_test_list[i]+0.02, y_pred_list[i]+0.02))
+    plt.title(target_name+' (N='+str(len(y_test_list))+', model = '+model+') r='+str(round(r, 3)))
+    plt.grid()
+    if value_log:
+        plt.xlabel('Experimental value (log)')
+        plt.ylabel('Predicted value (log)')
+    else:
+        plt.xlabel('Experimental value')
+        plt.ylabel('Predicted value')
+    plt.axes().set_aspect('equal')
+    if target_name == 'Δ[θ] ([θ]222/[θ]208)':
+        plt.savefig('./result/helix-like_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
+    else:
+        plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
+    plt.show()
 
 
 # # 予測精度検証
@@ -554,9 +553,9 @@ value_log = False
 model = 'physbo'
 fold_n = 10
 for smiles_type in ['smiles_repP_skip7']:
-  for target_index in [16]:
-    for feature in ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS']:# ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'mordred']:#['one-hot', 'mordred', 'Morgan_r2', 'Morgan_r4', 'MACCS']:
-      calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
+    for target_index in [16]:
+        for feature in ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS']:# ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'mordred']:#['one-hot', 'mordred', 'Morgan_r2', 'Morgan_r4', 'MACCS']:
+            calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
 
 
 target_index = 16
@@ -569,20 +568,20 @@ print(target_name)
 filled_index_list = []
 exp_modified_list = []
 for i, v in enumerate(exp_list):
-  if str(v)[0] == '>':
-    exp_modified_list.append([float(str(v)[1:])*2, peptide_feature_list[i][2]])
-    filled_index_list.append(i)
-  elif str(v)[0] == '<':
-    exp_modified_list.append([float(str(v)[1:])/2, peptide_feature_list[i][2]])
-    filled_index_list.append(i)
-  else:
-    if not math.isnan(v):
-      filled_index_list.append(i)
-    exp_modified_list.append([v, peptide_feature_list[i][2]])
+    if str(v)[0] == '>':
+        exp_modified_list.append([float(str(v)[1:])*2, peptide_feature_list[i][2]])
+        filled_index_list.append(i)
+    elif str(v)[0] == '<':
+        exp_modified_list.append([float(str(v)[1:])/2, peptide_feature_list[i][2]])
+        filled_index_list.append(i)
+    else:
+        if not math.isnan(v):
+            filled_index_list.append(i)
+        exp_modified_list.append([v, peptide_feature_list[i][2]])
 
 print(len(filled_index_list))
 if value_log == True:
-  exp_modified_list = np.log10(exp_modified_list)
+    exp_modified_list = np.log10(exp_modified_list)
 max = np.max(np.array(exp_modified_list)[filled_index_list][:,0])
 min = np.min(np.array(exp_modified_list)[filled_index_list][:,0])
 #plt.hist(np.array(exp_modified_list)[filled_index_list][:,0], label = 'all', alpha = 0.6, bins = np.arange(min, max, (max-min)/20))
@@ -600,9 +599,9 @@ plt.title(target_name+' Log10='+str(value_log))
 plt.xlabel(target_name)
 plt.ylabel('frequency')
 if target_name == 'Δ[θ] ([θ]222/[θ]208)':
-  plt.savefig('./result/helix-like_dist_log'+str(value_log)+'.png', dpi = 300)
+    plt.savefig('./result/helix-like_dist_log'+str(value_log)+'.png', dpi = 300)
 else:
-  plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
+    plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
 plt.show()
 
 
@@ -649,11 +648,11 @@ mutation_info_list = [[[-1, -1], [], []]] #何も変異しないものも用意,
 
 
 for pos_comb in pos_comb_list:
-  #print(pos_comb)
-  for mutation_pos in pos_comb:
-    for mutation_aa in itertools.product(mutatable_AA_index_list, repeat = mutation_num):
-      mutation_info_list.append([[-1, -1], list(pos_comb), list(mutation_aa)])
-      #print(pos_comb, mutation_aa)
+    #print(pos_comb)
+    for mutation_pos in pos_comb:
+        for mutation_aa in itertools.product(mutatable_AA_index_list, repeat = mutation_num):
+            mutation_info_list.append([[-1, -1], list(pos_comb), list(mutation_aa)])
+            #print(pos_comb, mutation_aa)
       
 print(len(mutation_info_list))
 
@@ -661,26 +660,26 @@ print(len(mutation_info_list))
 linker_mutation_info_list = []
 for m_i, mutation_info in enumerate(mutation_info_list):
   
-  print('linker', m_i, len(mutation_info_list))
-  for i in range(pep_len):
-    for un in linker_index_list:
-      if un == 27: #S5-S5
-        if i+4 > pep_len - 1:
-          continue
-        new_mutation_info = copy.deepcopy(mutation_info)
-        new_mutation_info[0] = [i+1, i+4+1]
-        new_mutation_info[1] = new_mutation_info[1]+[i, i+4]
-        new_mutation_info[2] = new_mutation_info[2]+[27, 27]
-        linker_mutation_info_list.append(new_mutation_info)
-        
-      elif un == 28: #R8-S5
-        if i+7 > pep_len - 1:
-          continue
-        new_mutation_info = copy.deepcopy(mutation_info)
-        new_mutation_info[0] = [i+1, i+7+1]
-        new_mutation_info[1] = new_mutation_info[1]+[i, i+7]
-        new_mutation_info[2] = new_mutation_info[2]+[28, 27]
-        linker_mutation_info_list.append(new_mutation_info)
+    print('linker', m_i, len(mutation_info_list))
+    for i in range(pep_len):
+        for un in linker_index_list:
+            if un == 27: #S5-S5
+                if i+4 > pep_len - 1:
+                    continue
+                new_mutation_info = copy.deepcopy(mutation_info)
+                new_mutation_info[0] = [i+1, i+4+1]
+                new_mutation_info[1] = new_mutation_info[1]+[i, i+4]
+                new_mutation_info[2] = new_mutation_info[2]+[27, 27]
+                linker_mutation_info_list.append(new_mutation_info)
+              
+            elif un == 28: #R8-S5
+                if i+7 > pep_len - 1:
+                    continue
+                new_mutation_info = copy.deepcopy(mutation_info)
+                new_mutation_info[0] = [i+1, i+7+1]
+                new_mutation_info[1] = new_mutation_info[1]+[i, i+7]
+                new_mutation_info[2] = new_mutation_info[2]+[28, 27]
+                linker_mutation_info_list.append(new_mutation_info)
 
 mutation_info_list = mutation_info_list + linker_mutation_info_list
 print(len(mutation_info_list))
@@ -691,24 +690,24 @@ new_peptide_feature_list = []
 cand_data_list = []
 
 for mutation_info in mutation_info_list:
-  print(len(cand_data_list), len(mutation_info_list))
-  input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
-  input_aa_list[2:4] = mutation_info[0]
-  for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
-    input_aa_list[4+m_pos] = m_aa
+    print(len(cand_data_list), len(mutation_info_list))
+    input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
+    input_aa_list[2:4] = mutation_info[0]
+    for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
+        input_aa_list[4+m_pos] = m_aa
 
-  new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
-  cand_data_list.append([mutation_info, new_peptide_smi])
-  new_peptide_feature_list.append(input_aa_list)
-  new_peptide_mol_list.append(new_peptide_mol)
-  new_peptide_smi_list.append(new_peptide_smi)
+    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
+    cand_data_list.append([mutation_info, new_peptide_smi])
+    new_peptide_feature_list.append(input_aa_list)
+    new_peptide_mol_list.append(new_peptide_mol)
+    new_peptide_smi_list.append(new_peptide_smi)
 
 
 new_smiles_repP_list = []
 for i in range(len(new_peptide_smi_list)):
-  print(i, new_peptide_smi_list[i])
-  seq_smi = replaceP_smiles(new_peptide_smi_list[i], new_peptide_feature_list[i])
-  new_smiles_repP_list.append(seq_smi)
+    print(i, new_peptide_smi_list[i])
+    seq_smi = replaceP_smiles(new_peptide_smi_list[i], new_peptide_feature_list[i])
+    new_smiles_repP_list.append(seq_smi)
 
 
 mol_list = new_peptide_mol_list
@@ -748,113 +747,113 @@ pi_list_list = []
 
 for target_i in range(len(target_list)):
 
-  target_index = target_list[target_i]
-  target_name = data.keys()[target_index]
-  smiles_type = smiles_type_list[target_i]
-  feature = feature_list[target_i]
-  exp_list = data[target_name][:82]
-  print(target_name)
+    target_index = target_list[target_i]
+    target_name = data.keys()[target_index]
+    smiles_type = smiles_type_list[target_i]
+    feature = feature_list[target_i]
+    exp_list = data[target_name][:82]
+    print(target_name)
 
-  #数値データの修正
-  filled_index_list = []
-  exp_modified_list = []
-  for i, v in enumerate(exp_list):
-    if str(v)[0] == '>':
-      exp_modified_list.append(float(str(v)[1:])*2)
-      filled_index_list.append(i)
-    elif str(v)[0] == '<':
-      exp_modified_list.append(float(str(v)[1:])/2)
-      filled_index_list.append(i)
-    else:
-      if not math.isnan(v):
-        filled_index_list.append(i)
-      exp_modified_list.append(v)
-  print('filled_index_list', len(filled_index_list))
-  if value_log == True:
-    exp_modified_list = np.log10(exp_modified_list)
+    #数値データの修正
+    filled_index_list = []
+    exp_modified_list = []
+    for i, v in enumerate(exp_list):
+        if str(v)[0] == '>':
+            exp_modified_list.append(float(str(v)[1:])*2)
+            filled_index_list.append(i)
+        elif str(v)[0] == '<':
+            exp_modified_list.append(float(str(v)[1:])/2)
+            filled_index_list.append(i)
+        else:
+            if not math.isnan(v):
+                filled_index_list.append(i)
+            exp_modified_list.append(v)
+    print('filled_index_list', len(filled_index_list))
+    if value_log == True:
+        exp_modified_list = np.log10(exp_modified_list)
 
-  #学習モデル準備
-  #学習ペプチド入力データ準備
-  if smiles_type == 'original':
-    if feature == 'MACCS':
-      X = np.array(MACCS_fp)[filled_index_list]
-      X_cand = np.array(Cand_MACCS_fp)
-    elif feature == 'Morgan_r2_count':
-      X = np.array(Morgan_r2_count)[filled_index_list]
-      X_cand = np.array(Cand_Morgan_r2_count)
-    elif feature == 'Morgan_r4_count':
-      X = np.array(Morgan_r4_count)[filled_index_list]
-      X_cand = np.array(Cand_Morgan_r4_count)
-  if smiles_type == 'smiles_repP_skip7':
-    if feature == 'MACCS':
-      X = np.array(repP_skip7_MACCS_fp)[filled_index_list]
-      X_cand = np.array(Cand_repP_skip7_MACCS_fp)
-    elif feature == 'Morgan_r2_count':
-      X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
-      X_cand = np.array(Cand_repP_skip7_Morgan_r2_count)
-    elif feature == 'Morgan_r4_count':
-      X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
-      X_cand = np.array(Cand_repP_skip7_Morgan_r4_count)
-      
+    #学習モデル準備
+    #学習ペプチド入力データ準備
+    if smiles_type == 'original':
+        if feature == 'MACCS':
+            X = np.array(MACCS_fp)[filled_index_list]
+            X_cand = np.array(Cand_MACCS_fp)
+        elif feature == 'Morgan_r2_count':
+            X = np.array(Morgan_r2_count)[filled_index_list]
+            X_cand = np.array(Cand_Morgan_r2_count)
+        elif feature == 'Morgan_r4_count':
+            X = np.array(Morgan_r4_count)[filled_index_list]
+            X_cand = np.array(Cand_Morgan_r4_count)
+    if smiles_type == 'smiles_repP_skip7':
+        if feature == 'MACCS':
+            X = np.array(repP_skip7_MACCS_fp)[filled_index_list]
+            X_cand = np.array(Cand_repP_skip7_MACCS_fp)
+        elif feature == 'Morgan_r2_count':
+            X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
+            X_cand = np.array(Cand_repP_skip7_Morgan_r2_count)
+        elif feature == 'Morgan_r4_count':
+            X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
+            X_cand = np.array(Cand_repP_skip7_Morgan_r4_count)
 
-  #候補ペプチド入力データ準備
+
+    #候補ペプチド入力データ準備
   
 
-  if model == 'physbo' and standardize:  
-    ss = preprocessing.StandardScaler()
-    X = ss.fit_transform(X)
-    X_cand = ss.fit_transform(np.array(Cand_Morgan_r4_count))
-  y = np.array(exp_modified_list)[filled_index_list]
+    if model == 'physbo' and standardize:  
+        ss = preprocessing.StandardScaler()
+        X = ss.fit_transform(X)
+        X_cand = ss.fit_transform(np.array(Cand_Morgan_r4_count))
+    y = np.array(exp_modified_list)[filled_index_list]
 
-  #学習
-  print('X', len(X), 'X_cand', len(X_cand), 'y', len(y))
-  [y_pred_train, y_pred_cov_train], [y_pred, y_pred_cov] = GP_predict(X, X_cand, y, [0 for i in range(len(X_cand))])
+    #学習
+    print('X', len(X), 'X_cand', len(X_cand), 'y', len(y))
+    [y_pred_train, y_pred_cov_train], [y_pred, y_pred_cov] = GP_predict(X, X_cand, y, [0 for i in range(len(X_cand))])
 
-  #calc PI
-  if threshold_list[target_i][0] == '<=':
-    pi_list = calc_PI_underfmin(y_pred, y_pred_cov, np.log10(threshold_list[target_i][1]))
-  elif threshold_list[target_i][0] == '>=':    
-    pi_list = calc_PI_overfmax(y_pred, y_pred_cov, np.log10(threshold_list[target_i][1]))
+    #calc PI
+    if threshold_list[target_i][0] == '<=':
+        pi_list = calc_PI_underfmin(y_pred, y_pred_cov, np.log10(threshold_list[target_i][1]))
+    elif threshold_list[target_i][0] == '>=':    
+        pi_list = calc_PI_overfmax(y_pred, y_pred_cov, np.log10(threshold_list[target_i][1]))
 
-  pred_y_list_list.append(y_pred)
-  pred_cov_list_list.append(y_pred_cov)
-  pi_list_list.append(pi_list)
+    pred_y_list_list.append(y_pred)
+    pred_cov_list_list.append(y_pred_cov)
+    pi_list_list.append(pi_list)
 
-  print('cand_data_list', cand_data_list[:5])
-  print('PI', pi_list[:5])
-  print('y_pred', y_pred[:5])
-  print('y_cov', y_pred_cov[:5])
+    print('cand_data_list', cand_data_list[:5])
+    print('PI', pi_list[:5])
+    print('y_pred', y_pred[:5])
+    print('y_cov', y_pred_cov[:5])
 
-  if visualize:
-    B_cand_index = [i for i, data in enumerate(cand_data_list) if ((len(data[0][1]) == 1) and (AA_keys[data[0][2][0]] == 'B'))]
-    plt.errorbar(np.array(range(1, len(y_pred[B_cand_index]) + 1))-0.07, y_pred[B_cand_index], yerr = (y_pred_cov**0.5)[B_cand_index], fmt='o', label = 'Ac5c')
+    if visualize:
+        B_cand_index = [i for i, data in enumerate(cand_data_list) if ((len(data[0][1]) == 1) and (AA_keys[data[0][2][0]] == 'B'))]
+        plt.errorbar(np.array(range(1, len(y_pred[B_cand_index]) + 1))-0.07, y_pred[B_cand_index], yerr = (y_pred_cov**0.5)[B_cand_index], fmt='o', label = 'Ac5c')
 
-    U_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 1 and AA_keys[data[0][2][0]] == 'U']
-    plt.errorbar(range(1, len(y_pred[U_cand_index]) + 1), y_pred[U_cand_index], yerr = (y_pred_cov**0.5)[U_cand_index], fmt='o', label = 'Aib')
+        U_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 1 and AA_keys[data[0][2][0]] == 'U']
+        plt.errorbar(range(1, len(y_pred[U_cand_index]) + 1), y_pred[U_cand_index], yerr = (y_pred_cov**0.5)[U_cand_index], fmt='o', label = 'Aib')
 
-    Z_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 1 and AA_keys[data[0][2][0]] == 'Z']
-    plt.errorbar(np.array(range(1, len(y_pred[Z_cand_index]) + 1))+0.07, y_pred[Z_cand_index], yerr = (y_pred_cov**0.5)[Z_cand_index], fmt='o', label = 'Ac6c')
+        Z_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 1 and AA_keys[data[0][2][0]] == 'Z']
+        plt.errorbar(np.array(range(1, len(y_pred[Z_cand_index]) + 1))+0.07, y_pred[Z_cand_index], yerr = (y_pred_cov**0.5)[Z_cand_index], fmt='o', label = 'Ac6c')
 
-    S5_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 2 and AA_keys[data[0][2][0]] == 'S5' and AA_keys[data[0][2][1]] == 'S5']
-    plt.errorbar(np.array(range(1, len(y_pred[S5_cand_index]) + 1))-0.07, y_pred[S5_cand_index], yerr = (y_pred_cov**0.5)[S5_cand_index], fmt='o', label = 'S5-S5')
+        S5_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 2 and AA_keys[data[0][2][0]] == 'S5' and AA_keys[data[0][2][1]] == 'S5']
+        plt.errorbar(np.array(range(1, len(y_pred[S5_cand_index]) + 1))-0.07, y_pred[S5_cand_index], yerr = (y_pred_cov**0.5)[S5_cand_index], fmt='o', label = 'S5-S5')
 
-    R8_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 2 and AA_keys[data[0][2][0]] == 'R8']
-    plt.errorbar(np.array(range(1, len(y_pred[R8_cand_index]) + 1))-0.07, y_pred[R8_cand_index], yerr = (y_pred_cov**0.5)[R8_cand_index], fmt='o', label = 'R8-S5')
+        R8_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 2 and AA_keys[data[0][2][0]] == 'R8']
+        plt.errorbar(np.array(range(1, len(y_pred[R8_cand_index]) + 1))-0.07, y_pred[R8_cand_index], yerr = (y_pred_cov**0.5)[R8_cand_index], fmt='o', label = 'R8-S5')
 
 
-    plt.legend()
-    plt.xlabel('mutation position')
-    plt.ylabel(target_name+' (log, predicted)')
-    plt.savefig('./result/bo_'+target_name+'_test.png', dpi = 300)
-    plt.show()
+        plt.legend()
+        plt.xlabel('mutation position')
+        plt.ylabel(target_name+' (log, predicted)')
+        plt.savefig('./result/bo_'+target_name+'_test.png', dpi = 300)
+        plt.show()
 
 
 total_pi_score_list = []
 for j in range(len(new_peptide_feature_list)):
-  score = 1
-  for i in range(len(target_list)):
-    score = score*pi_list_list[i][j]
-  total_pi_score_list.append(score)
+    score = 1
+    for i in range(len(target_list)):
+        score = score*pi_list_list[i][j]
+    total_pi_score_list.append(score)
 
 
 plt.plot(total_pi_score_list)
@@ -865,9 +864,9 @@ plt.show()
 ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
 
 for top_index in ordered_total_PI_score_index[:10]:
-  print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2]))
-  for target_i in range(len(target_list)):
-    target_index = target_list[target_i]
-    target_name = data.keys()[target_index]
-    print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3))
+    print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2]))
+    for target_i in range(len(target_list)):
+        target_index = target_list[target_i]
+        target_name = data.keys()[target_index]
+        print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3))
   
