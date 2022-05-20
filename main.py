@@ -314,8 +314,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(Morgan_r4_fp)[filled_index_list]
         elif feature == 'MACCS':
             X = np.array(MACCS_fp)[filled_index_list]
-        elif feature == 'mordred':
-            X = mordred_descriptor.values[filled_index_list]
         elif feature == 'Morgan_r2_count':
             X = np.array(Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
@@ -331,8 +329,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(woMC_Morgan_r4_fp)[filled_index_list]
         elif feature == 'MACCS':
             X = np.array(woMC_MACCS_fp)[filled_index_list]
-        elif feature == 'mordred':
-            X = woMC_mordred_descriptor.values[filled_index_list]
         elif feature == 'Morgan_r2_count':
             X = np.array(woMC_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
@@ -344,8 +340,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_Morgan_r4_fp)[filled_index_list]
         elif feature == 'MACCS':
             X = np.array(repP_MACCS_fp)[filled_index_list]
-        elif feature == 'mordred':
-            X = repP_mordred_descriptor.values[filled_index_list]
         elif feature == 'Morgan_r2_count':
             X = np.array(repP_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
@@ -357,8 +351,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_skip4_Morgan_r4_fp)[filled_index_list]
         elif feature == 'MACCS':
             X = np.array(repP_skip4_MACCS_fp)[filled_index_list]
-        elif feature == 'mordred':
-            X = repP_skip4_mordred_descriptor.values[filled_index_list]
         elif feature == 'Morgan_r2_count':
             X = np.array(repP_skip4_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
@@ -370,8 +362,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_skip7_Morgan_r4_fp)[filled_index_list]
         elif feature == 'MACCS':
             X = np.array(repP_skip7_MACCS_fp)[filled_index_list]
-        elif feature == 'mordred':
-            X = repP_skip7_mordred_descriptor.values[filled_index_list]
         elif feature == 'Morgan_r2_count':
             X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
@@ -539,7 +529,7 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 # # 予測精度検証
 
 #model list: 'RF', 'lightgbm'
-#feature list: 'Morgan_r2', 'Morgan_r4','Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'Morgan_r2_MACCS', 'one-hot', 'mordred'
+#feature list: 'Morgan_r2', 'Morgan_r4','Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'Morgan_r2_MACCS', 'one-hot'
 
 #fold_n: fold num of cross-validation
 
@@ -554,7 +544,7 @@ model = 'physbo'
 fold_n = 10
 for smiles_type in ['smiles_repP_skip7']:
     for target_index in [16]:
-        for feature in ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS']:# ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'mordred']:#['one-hot', 'mordred', 'Morgan_r2', 'Morgan_r4', 'MACCS']:
+        for feature in ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS']:
             calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
 
 
