@@ -25,6 +25,7 @@ from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_sm
 
 
 # data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
+
 data = pd.read_excel('./data/test.xlsx')
 peptide_list = data['修正ペプチド配列'][:82]
 for p in peptide_list:
