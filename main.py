@@ -664,23 +664,56 @@ mutation_info_list = mutation_info_list + linker_mutation_info_list
 print(len(mutation_info_list))
 
 
+new_peptide_mol_list1, new_peptide_smi_list1 = [], []
+new_peptide_feature_list1 = []
+cand_data_list1 = []
+for mutation_info in mutation_info_list:
+  print(len(new_peptide_feature_list1), len(mutation_info_list))
+  input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
+  #リンカー情報
+  input_aa_list[2:4] = mutation_info[0]
+  b  = copy.copy(input_aa_list)
+  c = []
+  for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
+  #   #変異の挿入
+  #   input_aa_list[4+m_pos] = m_aa
+    input_aa_list[4+m_pos] = m_aa
+    c = copy.copy(input_aa_list)
+  if b == c:
+    continue  
+  else:
+    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list)
+    new_peptide_feature_list1.append(input_aa_list)
+    cand_data_list1.append([mutation_info, new_peptide_smi])
+    new_peptide_mol_list1.append(new_peptide_mol)
+    new_peptide_smi_list1.append(new_peptide_smi)
+
 new_peptide_mol_list, new_peptide_smi_list = [], []
 new_peptide_feature_list = []
+for new_peptide_feature in new_peptide_feature_list1:
+    counter = 0
+    for e in new_peptide_feature_list:
+        if e == new_peptide_feature:
+            counter += 1
+    if counter == 0:
+        new_peptide_feature_list.append(new_peptide_feature)
+for new_peptide_smi, new_peptide_mol in zip(new_peptide_smi_list1, new_peptide_mol_list1):
+    counter = 0
+    for e in new_peptide_smi_list:
+        if e == new_peptide_smi:
+            counter += 1
+    if counter == 0:
+        new_peptide_smi_list.append(new_peptide_smi)
+        new_peptide_mol_list.append(new_peptide_mol)     
 cand_data_list = []
-
-for mutation_info in mutation_info_list:
-    print(len(cand_data_list), len(mutation_info_list))
-    input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
-    input_aa_list[2:4] = mutation_info[0]
-    for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
-        input_aa_list[4+m_pos] = m_aa
-
-    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
-    cand_data_list.append([mutation_info, new_peptide_smi])
-    new_peptide_feature_list.append(input_aa_list)
-    new_peptide_mol_list.append(new_peptide_mol)
-    new_peptide_smi_list.append(new_peptide_smi)
-
+for cand_data in cand_data_list1:
+    counter = 0
+    for e in cand_data_list:
+        f = e[1]
+        if f == cand_data[1]:
+            counter += 1
+    if counter == 0:
+        cand_data_list.append(cand_data)
 
 new_smiles_repP_list = []
 for i in range(len(new_peptide_smi_list)):
