@@ -24,12 +24,12 @@ from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
 from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect
 
 
-data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
-
-peptide_list = data['修正ペプチド配列']
+# data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
+data = pd.read_excel('./data/test.xlsx')
+peptide_list = data['修正ペプチド配列'][:82]
 for p in peptide_list:
     print(p)
-smiles_list = data['SMILES']
+smiles_list = data['SMILES'][:82]
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 
 
@@ -145,7 +145,6 @@ for fl in peptide_feature_list:
     print(fl)
 # # 新規ペプチド生成
 # 
-
 
 #出水先生に指定してもらったデータ
 #番号9, H-GIKKFLKSAKKFVKAFK-NH2, 
