@@ -682,7 +682,7 @@ for mutation_info in mutation_info_list:
   if b == c:
     continue  
   else:
-    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list)
+    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
     new_peptide_feature_list1.append(input_aa_list)
     cand_data_list1.append([mutation_info, new_peptide_smi])
     new_peptide_mol_list1.append(new_peptide_mol)
@@ -871,12 +871,17 @@ for j in range(len(new_peptide_feature_list)):
 plt.plot(total_pi_score_list)
 plt.ylabel('Total PI score')
 plt.grid()
+plt.savefig('result/bo_PI score.png', dpi = 300)
 plt.show()
+
+import pickle
+with open('result/total_pi_score_list.pkl', mode='rb') as f:
+        total_pi_score_list = pickle.load(f)
 
 ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
 
 for top_index in ordered_total_PI_score_index[:10]:
-    print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2]))
+    print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list))
     for target_i in range(len(target_list)):
         target_index = target_list[target_i]
         target_name = data.keys()[target_index]
