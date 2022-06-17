@@ -10,6 +10,7 @@ import numpy as np
 import optuna
 import pandas as pd
 import physbo
+import pickle
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from sklearn import preprocessing 
@@ -613,10 +614,10 @@ mutation_num = 1
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
-NNAA_index_list = [24, 25, 26] #[21, 22, 23, 24, 25, 26]
+NNAA_index_list = [9,17,25] #[21, 22, 23, 24, 25, 26]
 mutatable_AA_index_list = NNAA_index_list #ここどうするか
 linker_index_list = [27, 28]
-
+only_staple = True
 #linkerは入っていないと仮定. 一番最後に入れる. 最初に変異入れる箇所の候補の組み合わせを出す.
 position_index_list = range(pep_len)
 pos_comb_list = itertools.combinations(position_index_list, mutation_num)
@@ -874,16 +875,36 @@ plt.grid()
 plt.savefig('result/bo_PI score.png', dpi = 300)
 plt.show()
 
-import pickle
-with open('result/total_pi_score_list.pkl', mode='rb') as f:
-        total_pi_score_list = pickle.load(f)
+with open('result/total_pi_score_list.pkl', mode='wb') as f:
+    pickle.dump(total_pi_score_list, f)
 
-ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
+if only_staple:
+    only_staple_total_pi_score_list = []
+    index_list = []
+    index = -1
 
-for top_index in ordered_total_PI_score_index[:10]:
-    print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list))
-    for target_i in range(len(target_list)):
-        target_index = target_list[target_i]
-        target_name = data.keys()[target_index]
-        print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3))
+    for i in cand_data_list:
+        index += 1
+        if i[0][0][0] != -1:
+            index_list.append(index)
+            only_staple_total_pi_score_list.append(total_pi_score_list[index])
+
+    ordered_total_PI_score_index = np.argsort(only_staple_total_pi_score_list)[::-1]
+
+    for top_index in ordered_total_PI_score_index[:10]:
+        print( 'total_pi_score', round(only_staple_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[index_list[top_index]] if v != -2],AA_keys, ct_list, nt_list))
+        for target_i in range(len(target_list)):
+            target_index = target_list[target_i]
+            target_name = data.keys()[target_index]
+            print('  ', target_name, round(10**pred_y_list_list[target_i][index_list[top_index]], 3))  
+
+else:
+    ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
+    for top_index in ordered_total_PI_score_index[:10]:
+        print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list))
+        for target_i in range(len(target_list)):
+            target_index = target_list[target_i]
+            target_name = data.keys()[target_index]
+            print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3))
   
+
