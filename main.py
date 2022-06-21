@@ -610,14 +610,14 @@ base_index = 8
 input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
 
-mutation_num = 1
+mutation_num = 2
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
-NNAA_index_list = [9,17,25] #[21, 22, 23, 24, 25, 26]
+NNAA_index_list = [9,17,20,22,25] #[21, 22, 23, 24, 25, 26]
 mutatable_AA_index_list = NNAA_index_list #ここどうするか
 linker_index_list = [27, 28]
-only_staple = True
+only_staple = False
 #linkerは入っていないと仮定. 一番最後に入れる. 最初に変異入れる箇所の候補の組み合わせを出す.
 position_index_list = range(pep_len)
 pos_comb_list = itertools.combinations(position_index_list, mutation_num)
@@ -877,6 +877,10 @@ plt.show()
 
 with open('result/total_pi_score_list.pkl', mode='wb') as f:
     pickle.dump(total_pi_score_list, f)
+with open('result/cand_data_list.pkl', mode='rb') as f:
+    pickle.dump(cand_data_list, f)
+with open('result/new_peptide_feature_list.pkl', mode='rb') as f:
+    pickle.dump(new_peptide_feature_list, f)
 
 if only_staple:
     only_staple_total_pi_score_list = []
