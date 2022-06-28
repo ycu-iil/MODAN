@@ -26,6 +26,42 @@ import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
 from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect
 
+def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
+  #input_aa_list = args[0]
+  #mutaion_info = args[1]
+  print(input_aa_list, mutation_info)
+  #リンカー情報
+  input_aa_list[2:4] = mutation_info[0]
+  b  = copy.copy(input_aa_list)
+  c = []
+  for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
+  #   #変異の挿入
+  #   input_aa_list[4+m_pos] = m_aa
+    input_aa_list[4+m_pos] = m_aa
+    c = copy.copy(input_aa_list)
+  if b == c:
+    return None
+    #continue  
+  else:
+    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
+    #new_peptide_feature_list1.append(input_aa_list)
+    #cand_data_list1.append([mutation_info, new_peptide_smi])
+    #new_peptide_mol_list1.append(new_peptide_mol)
+    #new_peptide_smi_list1.append(new_peptide_smi)
+    return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
+
+def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
+  if fp_type == 'Morgan':
+    return AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension)
+  elif fp_type == 'MorganCount':
+    return calc_MorganCount(mol, radial, descriptor_dimension)
+  elif fp_type == 'MACCS':
+    return AllChem.GetMACCSKeysFingerprint(mol)
+
+def smi2repP_skip(smi, peptide_feature, skip = 7):
+  return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
+
+
 
 
 data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
@@ -673,30 +709,6 @@ new_peptide_mol_list1, new_peptide_smi_list1 = [], []
 new_peptide_feature_list1 = []
 cand_data_list1 = []
 
-def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
-  #input_aa_list = args[0]
-  #mutaion_info = args[1]
-  print(input_aa_list, mutation_info)
-  #リンカー情報
-  input_aa_list[2:4] = mutation_info[0]
-  b  = copy.copy(input_aa_list)
-  c = []
-  for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
-  #   #変異の挿入
-  #   input_aa_list[4+m_pos] = m_aa
-    input_aa_list[4+m_pos] = m_aa
-    c = copy.copy(input_aa_list)
-  if b == c:
-    return None
-    #continue  
-  else:
-    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
-    #new_peptide_feature_list1.append(input_aa_list)
-    #cand_data_list1.append([mutation_info, new_peptide_smi])
-    #new_peptide_mol_list1.append(new_peptide_mol)
-    #new_peptide_smi_list1.append(new_peptide_smi)
-    return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
-
 
 generate_start_time = time.time()
 
@@ -769,15 +781,6 @@ for i in range(len(new_peptide_smi_list)):
 
 mol_list = new_peptide_mol_list
 
-def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
-  if fp_type == 'Morgan':
-    return AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension)
-  elif fp_type == 'MorganCount':
-    return calc_MorganCount(mol, radial, descriptor_dimension)
-  elif fp_type == 'MACCS':
-    return AllChem.GetMACCSKeysFingerprint(mol)
-
-#original smiles
 fp_start_time = time.time()
 with multiprocessing.Pool(processes = proc_n) as pool:
   Cand_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_list])
@@ -803,8 +806,6 @@ Cand_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for 
 """
 fp_end_time = time.time()
 
-def smi2repP_skip(smi, peptide_feature, skip = 7):
-  return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
 #smiles_repP_skip7
 repP_start_time = time.time()
