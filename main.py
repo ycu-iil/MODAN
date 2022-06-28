@@ -832,7 +832,7 @@ print('repP & fp time:', repP_end_time - repP_start_time)
 #'表皮ブドウ球菌', 'Proteus vulgaris', 'Salmonella enterica subsp.', 'Klebsiella pneumoniae（肺炎桿菌）', 'MDRP', 15: '溶血性', 16: Δ[θ] ([θ]222/[θ]208)
 
 target_list = [5, 6, 7, 8, 10, 14, 15]
-threshold_list = [['<=', 10], ['<=', 10], ['<=', 10], ['<=', 10], ['<=', 10],  ['<=', 10], ['>=', 50]]
+threshold_list = [['<=', 5], ['<=', 5], ['<=', 5], ['<=', 5], ['<=', 5],  ['<=', 5], ['>=', 100]]
 smiles_type_list = ['smiles_repP_skip7', 'smiles_repP_skip7', 'original', 'original', 'original', 'smiles_repP_skip7', 'smiles_repP_skip7']
 model = 'physbo'
 feature_list = ['MACCS', 'Morgan_r4_count', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'Morgan_r4_count', 'Morgan_r4_count']
