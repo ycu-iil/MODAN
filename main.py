@@ -64,7 +64,7 @@ def smi2repP_skip(smi, peptide_feature, skip = 7):
 
 
 
-data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
+data = pd.read_excel('./data/AMPdata.xlsx')
 
 #data = pd.read_excel('./data/test.xlsx')
 peptide_list = data['修正ペプチド配列'][:82]
@@ -747,30 +747,14 @@ generate_end_time = time.time()
 
 new_peptide_mol_list, new_peptide_smi_list = [], []
 new_peptide_feature_list = []
-for new_peptide_feature in new_peptide_feature_list1:
-    counter = 0
-    for e in new_peptide_feature_list:
-        if e == new_peptide_feature:
-            counter += 1
-    if counter == 0:
-        new_peptide_feature_list.append(new_peptide_feature)
-for new_peptide_smi, new_peptide_mol in zip(new_peptide_smi_list1, new_peptide_mol_list1):
-    counter = 0
-    for e in new_peptide_smi_list:
-        if e == new_peptide_smi:
-            counter += 1
-    if counter == 0:
-        new_peptide_smi_list.append(new_peptide_smi)
-        new_peptide_mol_list.append(new_peptide_mol)     
 cand_data_list = []
-for cand_data in cand_data_list1:
-    counter = 0
-    for e in cand_data_list:
-        f = e[1]
-        if f == cand_data[1]:
-            counter += 1
-    if counter == 0:
-        cand_data_list.append(cand_data)
+
+for i, pep in enumerate(new_peptide_smi_list1):
+    if pep not in new_peptide_smi_list:
+        new_peptide_smi_list.append(pep)
+        new_peptide_mol_list.append(new_peptide_mol_list1[i])
+        new_peptide_feature_list.append(new_peptide_feature_list1[i])
+        cand_data_list.append(cand_data_list1[i])
 
 new_smiles_repP_list = []
 for i in range(len(new_peptide_smi_list)):
@@ -979,9 +963,9 @@ plt.show()
 
 with open('result/total_pi_score_list.pkl', mode='wb') as f:
     pickle.dump(total_pi_score_list, f)
-with open('result/cand_data_list.pkl', mode='rb') as f:
+with open('result/cand_data_list.pkl', mode='wb') as f:
     pickle.dump(cand_data_list, f)
-with open('result/new_peptide_feature_list.pkl', mode='rb') as f:
+with open('result/new_peptide_feature_list.pkl', mode='wb') as f:
     pickle.dump(new_peptide_feature_list, f)
 
 if only_staple:
