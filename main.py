@@ -3,7 +3,7 @@ import itertools
 import math
 import unicodedata
 import re
-
+import time
 import lightgbm as lgb
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,6 +11,8 @@ import optuna
 import pandas as pd
 import physbo
 import pickle
+import multiprocessing
+
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from sklearn import preprocessing 
@@ -25,9 +27,10 @@ from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
 from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect
 
 
-# data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
 
-data = pd.read_excel('./data/test.xlsx')
+data = pd.read_excel('./data/抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx')
+
+#data = pd.read_excel('./data/test.xlsx')
 peptide_list = data['修正ペプチド配列'][:82]
 for p in peptide_list:
     print(p)
@@ -515,7 +518,7 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
         plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
     plt.show()
 
-
+"""
 # # 予測精度検証
 
 #model list: 'RF', 'lightgbm'
@@ -583,7 +586,7 @@ if target_name == 'Δ[θ] ([θ]222/[θ]208)':
 else:
     plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
 plt.show()
-
+"""
 
 # # BOによる推薦
 
@@ -609,12 +612,12 @@ plt.show()
 base_index = 8
 input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
-
-mutation_num = 2
+proc_n = 20
+mutation_num = 1 #2
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
-NNAA_index_list = [9,17,20,22,25] #[21, 22, 23, 24, 25, 26]
+NNAA_index_list = [9,17] #[9,17,20,22,25] #[21, 22, 23, 24, 25, 26]
 mutatable_AA_index_list = NNAA_index_list #ここどうするか
 linker_index_list = [27, 28]
 only_staple = False
@@ -637,6 +640,7 @@ for pos_comb in pos_comb_list:
 print(len(mutation_info_list))
 
 #linker をつけたものの情報を生成
+linker_start_time = time.time()
 linker_mutation_info_list = []
 for m_i, mutation_info in enumerate(mutation_info_list):
   
@@ -663,11 +667,49 @@ for m_i, mutation_info in enumerate(mutation_info_list):
 
 mutation_info_list = mutation_info_list + linker_mutation_info_list
 print(len(mutation_info_list))
-
+linker_end_time = time.time()
 
 new_peptide_mol_list1, new_peptide_smi_list1 = [], []
 new_peptide_feature_list1 = []
 cand_data_list1 = []
+
+def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
+  #input_aa_list = args[0]
+  #mutaion_info = args[1]
+  print(input_aa_list, mutation_info)
+  #リンカー情報
+  input_aa_list[2:4] = mutation_info[0]
+  b  = copy.copy(input_aa_list)
+  c = []
+  for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
+  #   #変異の挿入
+  #   input_aa_list[4+m_pos] = m_aa
+    input_aa_list[4+m_pos] = m_aa
+    c = copy.copy(input_aa_list)
+  if b == c:
+    return None
+    #continue  
+  else:
+    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
+    #new_peptide_feature_list1.append(input_aa_list)
+    #cand_data_list1.append([mutation_info, new_peptide_smi])
+    #new_peptide_mol_list1.append(new_peptide_mol)
+    #new_peptide_smi_list1.append(new_peptide_smi)
+    return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
+
+
+generate_start_time = time.time()
+
+args_list = [(copy.deepcopy(peptide_feature_list[base_index]), mutation_info) for mutation_info in mutation_info_list]
+print('args_list', args_list)
+with multiprocessing.Pool(processes = proc_n) as pool:
+  new_peptide_data_list = pool.starmap(generate_peptide_from_mutation_info, args_list)
+new_peptide_smi_list1 = [data[0] for data in new_peptide_data_list if data != None]
+new_peptide_mol_list1 = [data[1] for data in new_peptide_data_list if data != None]
+new_peptide_feature_list1 = [data[2] for data in new_peptide_data_list if data != None]
+cand_data_list1 = [data[3] for data in new_peptide_data_list if data != None]
+
+"""
 for mutation_info in mutation_info_list:
   print(len(new_peptide_feature_list1), len(mutation_info_list))
   input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
@@ -688,6 +730,8 @@ for mutation_info in mutation_info_list:
     cand_data_list1.append([mutation_info, new_peptide_smi])
     new_peptide_mol_list1.append(new_peptide_mol)
     new_peptide_smi_list1.append(new_peptide_smi)
+"""
+generate_end_time = time.time()
 
 new_peptide_mol_list, new_peptide_smi_list = [], []
 new_peptide_feature_list = []
@@ -725,21 +769,78 @@ for i in range(len(new_peptide_smi_list)):
 
 mol_list = new_peptide_mol_list
 
+def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
+  if fp_type == 'Morgan':
+    return AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension)
+  elif fp_type == 'MorganCount':
+    return calc_MorganCount(mol, radial, descriptor_dimension)
+  elif fp_type == 'MACCS':
+    return AllChem.GetMACCSKeysFingerprint(mol)
+
 #original smiles
+fp_start_time = time.time()
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_list])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_list])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_list])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
+
+"""
 Cand_Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_list]
 Cand_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_list]
 Cand_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_list]
 Cand_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_list]
 Cand_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_list]
+"""
+fp_end_time = time.time()
+
+def smi2repP_skip(smi, peptide_feature, skip = 7):
+  return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
 #smiles_repP_skip7
+repP_start_time = time.time()
+with multiprocessing.Pool(processes = proc_n) as pool:
+  mol_repP_skip7_list = pool.starmap(smi2repP_skip, [(smi, peptide_feature, 7) for smi, peptide_feature in zip(new_smiles_repP_list, new_peptide_feature_list)])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_repP_skip7_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_repP_skip7_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_repP_skip7_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = proc_n) as pool:
+  Cand_repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+
+"""
 mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(new_smiles_repP_list, new_peptide_feature_list)]
 Cand_repP_skip7_Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
 Cand_repP_skip7_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
 Cand_repP_skip7_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_skip7_list]
 Cand_repP_skip7_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
 Cand_repP_skip7_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
+"""
+repP_end_time = time.time()
 
+print('linker info time:', linker_end_time - linker_start_time)
+print('smiles generation time:', generate_end_time - generate_start_time)
+print('fp calc time:', fp_end_time - fp_start_time)
+print('repP & fp time:', repP_end_time - repP_start_time)
 
 #target_index
 #5:'大腸菌 (NZRC 3972)', 6:'DH5a', 7:'緑膿菌', '黄色ブドウ球菌', 'プロテウス菌', 
