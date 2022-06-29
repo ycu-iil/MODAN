@@ -995,6 +995,6 @@ else:
         for target_i in range(len(target_list)):
             target_index = target_list[target_i]
             target_name = data.keys()[target_index]
-            print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3), '(', round(pred_cov_list_list[target_i][top_index],3), ')' )
+            print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3), '(', round(pred_cov_list_list[target_i][top_index]**0.5,3), ')' )
   
 
