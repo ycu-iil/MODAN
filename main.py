@@ -650,7 +650,8 @@ input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
 #max60くらい
 proc_n = 60
-mutation_num = 1 #2
+fp_proc_n = 4
+mutation_num = 2 #2
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
@@ -768,19 +769,19 @@ for i in range(len(new_peptide_smi_list)):
 mol_list = new_peptide_mol_list
 
 fp_start_time = time.time()
-with multiprocessing.Pool(processes = proc_n) as pool:
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Cand_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_list])
 
-with multiprocessing.Pool(processes = proc_n) as pool:
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Cand_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_list])
 
-with multiprocessing.Pool(processes = proc_n) as pool:
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Cand_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
 
-with multiprocessing.Pool(processes = proc_n) as pool:
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Cand_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_list])
 
-with multiprocessing.Pool(processes = proc_n) as pool:
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Cand_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
 """
