@@ -648,15 +648,17 @@ plt.show()
 base_index = 8
 input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
-proc_n = 20
+#max60くらい
+proc_n = 60
 mutation_num = 1 #2
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
-NNAA_index_list = [9,17] #[9,17,20,22,25] #[21, 22, 23, 24, 25, 26]
+NNAA_index_list = [9,17,20,22,24,25,26] #[21, 22, 23, 24, 25, 26]
 mutatable_AA_index_list = NNAA_index_list #ここどうするか
 linker_index_list = [27, 28]
-only_staple = False
+result_type = "NNAA"  #staple, NNAA
+
 #linkerは入っていないと仮定. 一番最後に入れる. 最初に変異入れる箇所の候補の組み合わせを出す.
 position_index_list = range(pep_len)
 pos_comb_list = itertools.combinations(position_index_list, mutation_num)
@@ -968,7 +970,7 @@ with open('result/cand_data_list.pkl', mode='wb') as f:
 with open('result/new_peptide_feature_list.pkl', mode='wb') as f:
     pickle.dump(new_peptide_feature_list, f)
 
-if only_staple:
+if result_type == "staple":
     only_staple_total_pi_score_list = []
     index_list = []
     index = -1
@@ -986,8 +988,76 @@ if only_staple:
         for target_i in range(len(target_list)):
             target_index = target_list[target_i]
             target_name = data.keys()[target_index]
-            print('  ', target_name, round(10**pred_y_list_list[target_i][index_list[top_index]], 3))  
+            print('  ', target_name, round(10**pred_y_list_list[target_i][index_list[top_index]], 3),  '(', round(pred_cov_list_list[target_i][top_index]**0.5,3), ')' )  
 
+elif result_type == "NNAA":
+    orn_total_pi_score_list, orn_index_list = [], []
+    dab_total_pi_score_list, dab_index_list = [], []
+    ac5c_total_pi_score_list,ac5c_index_list = [], []
+    aib_total_pi_score_list,aib_index_list = [], []
+    ac6c_total_pi_score_list,ac6c_index_list = [], []
+    for i, pep in enumerate(new_peptide_feature_list):
+        if 20 in pep:
+            orn_total_pi_score_list.append(total_pi_score_list[i])
+            orn_index_list.append(i)
+        
+        if 22 in pep:
+            dab_total_pi_score_list.append(total_pi_score_list[i])
+            dab_index_list.append(i)
+
+        if 24 in pep:
+            ac5c_total_pi_score_list.append(total_pi_score_list[i])
+            ac5c_index_list.append(i)
+
+        if 25 in pep:
+            aib_total_pi_score_list.append(total_pi_score_list[i])
+            aib_index_list.append(i)
+
+        if 26 in pep:
+            ac6c_total_pi_score_list.append(total_pi_score_list[i])
+            ac6c_index_list.append(i)
+    
+    
+    orn_ordered_total_PI_score_index = np.argsort(orn_total_pi_score_list)[::-1]
+    for top_index in orn_ordered_total_PI_score_index[:3]:
+        print( 'orn','total_pi_score', round(orn_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[orn_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[orn_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
+        for target_i in range(len(target_list)):
+            target_index = target_list[target_i]
+            target_name = data.keys()[target_index]
+            print('  ', target_name, round(10**pred_y_list_list[target_i][orn_index_list[top_index]], 3), '(', round(pred_cov_list_list[target_i][orn_index_list[top_index]]**0.5,3), ')' )
+
+    dab_ordered_total_PI_score_index = np.argsort(dab_total_pi_score_list)[::-1]
+    for top_index in dab_ordered_total_PI_score_index[:3]:
+        print( 'dab','total_pi_score', round(dab_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[dab_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[dab_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
+        for target_i in range(len(target_list)):
+            target_index = target_list[target_i]
+            target_name = data.keys()[target_index]
+            print('  ', target_name, round(10**pred_y_list_list[target_i][dab_index_list[top_index]], 3), '(', round(pred_cov_list_list[target_i][dab_index_list[top_index]]**0.5,3), ')' )
+    
+    ac5c_ordered_total_PI_score_index = np.argsort(ac5c_total_pi_score_list)[::-1]
+    for top_index in ac5c_ordered_total_PI_score_index[:3]:
+        print( 'ac5c','total_pi_score', round(ac5c_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[ac5c_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[ac5c_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
+        for target_i in range(len(target_list)):
+            target_index = target_list[target_i]
+            target_name = data.keys()[target_index]
+            print('  ', target_name, round(10**pred_y_list_list[target_i][ac5c_index_list[top_index]], 3), '(', round(pred_cov_list_list[target_i][ac5c_index_list[top_index]]**0.5,3), ')' )
+
+    aib_ordered_total_PI_score_index = np.argsort(aib_total_pi_score_list)[::-1]
+    for top_index in aib_ordered_total_PI_score_index[:3]:
+        print( 'aib','total_pi_score', round(aib_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[aib_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[aib_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
+        for target_i in range(len(target_list)):
+            target_index = target_list[target_i]
+            target_name = data.keys()[target_index]
+            print('  ', target_name, round(10**pred_y_list_list[target_i][aib_index_list[top_index]], 3), '(', round(pred_cov_list_list[target_i][aib_index_list[top_index]]**0.5,3), ')' )
+
+    ac6c_ordered_total_PI_score_index = np.argsort(ac6c_total_pi_score_list)[::-1]
+    for top_index in aib_ordered_total_PI_score_index[:3]:
+        print( 'ac6c','total_pi_score', round(ac6c_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[ac6c_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[ac6c_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
+        for target_i in range(len(target_list)):
+            target_index = target_list[target_i]
+            target_name = data.keys()[target_index]
+            print('  ', target_name, round(10**pred_y_list_list[target_i][ac6c_index_list[top_index]], 3), '(', round(pred_cov_list_list[target_i][ac6c_index_list[top_index]]**0.5,3), ')' )
+            
 else:
     ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
     for top_index in ordered_total_PI_score_index[:10]:
