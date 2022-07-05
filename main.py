@@ -651,7 +651,7 @@ input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 #max60くらい
 proc_n = 60
 fp_proc_n = 4
-mutation_num = 1 #29
+mutation_num = 2 #29
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
@@ -970,6 +970,11 @@ with open('result/cand_data_list.pkl', mode='wb') as f:
     pickle.dump(cand_data_list, f)
 with open('result/new_peptide_feature_list.pkl', mode='wb') as f:
     pickle.dump(new_peptide_feature_list, f)
+with open('result/pred_y_list_list.pkl', mode='wb') as f:
+    pickle.dump(pred_y_list_list, f) 
+with open('result/pred_cov_list_list.pkl', mode='wb') as f:
+    pickle.dump(pred_cov_list_list, f)   
+    
 
 if result_type == "staple":
     only_staple_total_pi_score_list = []
