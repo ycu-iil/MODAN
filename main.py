@@ -64,13 +64,13 @@ def smi2repP_skip(smi, peptide_feature, skip = 7):
 
 
 
-data = pd.read_excel('./data/AMPdata.xlsx')
-
+data = pd.read_excel('./data/抗菌ペプチド情報_共同研究_pep9MDRP_20220906.xlsx')
+data_num = 89
 #data = pd.read_excel('./data/test.xlsx')
-peptide_list = data['修正ペプチド配列'][:82]
+peptide_list = data['修正ペプチド配列'][:data_num]
 for p in peptide_list:
     print(p)
-smiles_list = data['SMILES'][:82]
+smiles_list = data['SMILES'][:data_num]
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 
 
@@ -313,7 +313,7 @@ def GP_predict(train_X, test_X, train_y, test_y):
 def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log = False, standardize = False):
 
     target_name = data.keys()[target_index]
-    exp_list = data[target_name][:82]
+    exp_list = data[target_name][:data_num]
     print(target_name)
 
     #数値データの修正
@@ -580,7 +580,7 @@ for smiles_type in ['smiles_repP_skip7']:
 target_index = 16
 value_log = False
 target_name = data.keys()[target_index]
-exp_list = data[target_name][:82]
+exp_list = data[target_name][:data_num]
 print(target_name)
 
 #数値データの修正
@@ -651,7 +651,7 @@ input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 #max60くらい
 proc_n = 60
 fp_proc_n = 4
-mutation_num = 2 #29
+mutation_num = 1 #29
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
@@ -853,7 +853,7 @@ for target_i in range(len(target_list)):
     target_name = data.keys()[target_index]
     smiles_type = smiles_type_list[target_i]
     feature = feature_list[target_i]
-    exp_list = data[target_name][:82]
+    exp_list = data[target_name][:data_num]
     print(target_name)
 
     #数値データの修正
