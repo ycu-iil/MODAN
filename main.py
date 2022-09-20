@@ -1078,6 +1078,22 @@ elif result_type == "reverse":
             target_name = data.keys()[target_index]
             print('  ', target_name, round(10**pred_y_list_list[target_i][onlyAA_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][onlyAA_index_list[top_index]]**0.5,3), ')' )
 
+elif result_type == "top500":
+    result = []
+    ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
+    for top_index in ordered_total_PI_score_index[:500]:
+        pep = []
+        for v in new_peptide_feature_list[top_index]:
+            if v ==27 or v == 28:
+                v = 2
+            if v != -2:
+                pep.append(v)
+        print(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
+        result.append(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
+    with open('result.txt', 'w') as f:
+        for d in result:
+            f.write("%s\n" % d)
+            
 else:
     ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
     Total_result_list = []
