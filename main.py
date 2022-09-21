@@ -234,6 +234,27 @@ descriptor_dimension = 1024
 
 radial = 4
 
+fp_proc_n = 8
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_list])
+
+"""
 #original smiles
 Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_list]
 Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_list]
@@ -277,7 +298,26 @@ repP_skip7_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_
 repP_skip7_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
 repP_skip7_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
 repP_skip7_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_repP_skip7_list]
+"""
 
+mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repP_skip7_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repP_skip7_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repP_skip7_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repP_skip7_Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
 #vertical_feature
 """
@@ -591,7 +631,7 @@ model = 'physbo'
 fold_n = 10
 for smiles_type in ['smiles_repP_skip7']:
     for target_index in [15]:
-        for feature in ['Pharmacophore']:
+        for feature in ['Morgan_r4_count']:
             calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
 
 
