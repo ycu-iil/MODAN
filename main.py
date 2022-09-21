@@ -15,6 +15,7 @@ import multiprocessing
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from rdkit.Chem.Pharm2D import Gobbi_Pharm2D, Generate
 from sklearn import preprocessing 
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.metrics import r2_score, mean_squared_error
@@ -57,6 +58,8 @@ def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
     return calc_MorganCount(mol, radial, descriptor_dimension)
   elif fp_type == 'MACCS':
     return AllChem.GetMACCSKeysFingerprint(mol)
+  elif fp_type == 'Pharmacophore':
+    return Generate.Gen2DFingerprint(mol,Gobbi_Pharm2D.factory)
 
 def smi2repP_skip(smi, peptide_feature, skip = 7):
   return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
@@ -237,6 +240,7 @@ Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_di
 MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_list]
 Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_list]
 Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_list]
+Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_list]
 
 #smiles_woMC
 mol_woMC_list = [Chem.MolFromSmiles(smi) for smi in smiles_woMC_list]
@@ -245,6 +249,7 @@ woMC_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descript
 woMC_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_woMC_list]
 woMC_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_woMC_list]
 woMC_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_woMC_list]
+woMC_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_woMC_list]
 
 #smiles_repP
 mol_repP_list = [Chem.MolFromSmiles(smi) for smi in smiles_repP_list]
@@ -253,6 +258,7 @@ repP_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descript
 repP_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_list]
 repP_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_list]
 repP_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_list]
+repP_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_repP_list]
 
 #smiles_repP_skip4
 mol_repP_skip4_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 4)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
@@ -261,6 +267,7 @@ repP_skip4_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, de
 repP_skip4_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_skip4_list]
 repP_skip4_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip4_list]
 repP_skip4_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip4_list]
+repP_skip4_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_repP_skip4_list]
 
 #smiles_repP_skip7
 mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
@@ -269,6 +276,7 @@ repP_skip7_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, de
 repP_skip7_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_skip7_list]
 repP_skip7_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
 repP_skip7_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
+repP_skip7_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_repP_skip7_list]
 
 
 #vertical_feature
@@ -362,6 +370,8 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X0 = np.array(MACCS_fp)[filled_index_list]
             X1 = np.array(Morgan_r4_count)[filled_index_list]
             X = np.concatenate([X0, X1], axis = 1)
+        elif feature == 'Pharmacophore':
+            X = np.array(Pharmacophore_fp)[filled_index_list]
     if smiles_type == 'smiles_woMC':
         if feature == 'Morgan_r2':
             X = np.array(woMC_Morgan_r2_fp)[filled_index_list]
@@ -373,6 +383,8 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(woMC_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(woMC_Morgan_r4_count)[filled_index_list]
+        elif feature == 'Pharmacophore':
+            X = np.array(woMC_Pharmacophore_fp)[filled_index_list]
     if smiles_type == 'smiles_repP':
         if feature == 'Morgan_r2':
             X = np.array(repP_Morgan_r2_fp)[filled_index_list]
@@ -384,6 +396,8 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_Morgan_r4_count)[filled_index_list]
+        elif feature == 'Pharmacophore':
+            X = np.array(repP_Pharmacophore_fp)[filled_index_list]
     if smiles_type == 'smiles_repP_skip4':
         if feature == 'Morgan_r2':
             X = np.array(repP_skip4_Morgan_r2_fp)[filled_index_list]
@@ -395,6 +409,8 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_skip4_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_skip4_Morgan_r4_count)[filled_index_list]
+        elif feature == 'Pharmacophore':
+            X = np.array(repP_skip4_Pharmacophore_fp)[filled_index_list]
     if smiles_type == 'smiles_repP_skip7':
         if feature == 'Morgan_r2':
             X = np.array(repP_skip7_Morgan_r2_fp)[filled_index_list]
@@ -406,6 +422,8 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
+        elif feature == 'Pharmacophore':
+            X = np.array(repP_skip7_Pharmacophore_fp)[filled_index_list]
     """
     if smiles_type == 'vertical_skip7':
         if feature == 'Morgan_r2':
@@ -554,7 +572,7 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
         plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
     plt.show()
 
-"""
+
 # # 予測精度検証
 
 #model list: 'RF', 'lightgbm'
@@ -572,12 +590,12 @@ value_log = False
 model = 'physbo'
 fold_n = 10
 for smiles_type in ['smiles_repP_skip7']:
-    for target_index in [16]:
-        for feature in ['Morgan_r2', 'Morgan_r4', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS']:
+    for target_index in [15]:
+        for feature in ['Pharmacophore']:
             calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
 
 
-target_index = 16
+target_index = 15
 value_log = False
 target_name = data.keys()[target_index]
 exp_list = data[target_name][:data_num]
@@ -622,7 +640,7 @@ if target_name == 'Δ[θ] ([θ]222/[θ]208)':
 else:
     plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
 plt.show()
-"""
+'''
 
 # # BOによる推薦
 
@@ -1126,3 +1144,4 @@ else:
     df.columns = ["配列","スコア","E.coli","DH5α","緑膿菌","黄色","表皮","MDRP","溶血性"]
     df.to_csv("./result/top10.csv", encoding="shift_jis")
 
+'''
