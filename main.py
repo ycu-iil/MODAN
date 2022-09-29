@@ -64,9 +64,6 @@ def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
 def smi2repP_skip(smi, peptide_feature, skip = 7):
   return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
-
-
-
 data = pd.read_excel('./data/抗菌ペプチド情報_共同研究_pep9MDRP_20220906.xlsx')
 data_num = 89
 #data = pd.read_excel('./data/test.xlsx')
@@ -199,7 +196,7 @@ for fl in peptide_feature_list:
 #プロリンには対応できていない.
 #L体のみに対応.
 
-base_index = 8
+base_index = 87
 #B:24, U:25, Z:26, S5:27, R8:28, 
 input_aa_list = peptide_feature_list[base_index]
 new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
@@ -234,7 +231,7 @@ descriptor_dimension = 1024
 
 radial = 4
 
-fp_proc_n = 8
+fp_proc_n = 4
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_list])
@@ -251,8 +248,8 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_list])
+#with multiprocessing.Pool(processes = fp_proc_n) as pool:
+#  Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_list])
 
 """
 #original smiles
@@ -316,8 +313,8 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  repP_skip7_Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
+#with multiprocessing.Pool(processes = fp_proc_n) as pool:
+#  repP_skip7_Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
 #vertical_feature
 """
@@ -462,8 +459,8 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
-        elif feature == 'Pharmacophore':
-            X = np.array(repP_skip7_Pharmacophore_fp)[filled_index_list]
+        #elif feature == 'Pharmacophore':
+        #    X = np.array(repP_skip7_Pharmacophore_fp)[filled_index_list]
     """
     if smiles_type == 'vertical_skip7':
         if feature == 'Morgan_r2':
@@ -605,12 +602,13 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     else:
         plt.xlabel('Experimental value')
         plt.ylabel('Predicted value')
-    plt.axes().set_aspect('equal')
+    #plt.axes().set_aspect('equal')
     if target_name == 'Δ[θ] ([θ]222/[θ]208)':
         plt.savefig('./result/helix-like_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
     else:
         plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
     plt.show()
+    plt.clf()
 
 
 # # 予測精度検証
@@ -623,17 +621,17 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 #target_index
 #5:'大腸菌 (NZRC 3972)', 6:'DH5a', 7:'緑膿菌', '黄色ブドウ球菌', 'プロテウス菌', 
 #'表皮ブドウ球菌', 'Proteus vulgaris', 'Salmonella enterica subsp.', 'Klebsiella pneumoniae（肺炎桿菌）', 'MDRP', 15: '溶血性', 16: Δ[θ] ([θ]222/[θ]208)
-
+"""
 #活性値にlog10を入れるか否か否か
 value_log = False
 #smiles_type = 'vertical_skip4' #'original', 'smiles_repP_skip7', 'smiles_woMC', 'vertical_skip4', 'vertical_skip7'
 model = 'physbo'
 fold_n = 10
-for smiles_type in ['smiles_repP_skip7']:
-    for target_index in [15]:
+for smiles_type in ['Pharmacophore']:
+    for target_index in [6]:
         for feature in ['Morgan_r4_count']:
             calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
-
+"""
 
 target_index = 15
 value_log = False
@@ -680,7 +678,7 @@ if target_name == 'Δ[θ] ([θ]222/[θ]208)':
 else:
     plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
 plt.show()
-'''
+
 
 # # BOによる推薦
 
@@ -703,20 +701,20 @@ plt.show()
 
 
 
-base_index = 8
+base_index = 87
 input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
 #max60くらい
 proc_n = 60
 fp_proc_n = 4
-mutation_num = 1 #29
+mutation_num = 2 #29
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
 NNAA_index_list = [9,17,20,22,24,25,26] #[21, 22, 23, 24, 25, 26]
 mutatable_AA_index_list = NNAA_index_list #ここどうするか
 linker_index_list = [27, 28]
-result_type = "reverse"  #staple, NNAA
+result_type = None  #staple, NNAA
 
 #linkerは入っていないと仮定. 一番最後に入れる. 最初に変異入れる箇所の候補の組み合わせを出す.
 position_index_list = range(pep_len)
@@ -769,7 +767,6 @@ linker_end_time = time.time()
 new_peptide_mol_list1, new_peptide_smi_list1 = [], []
 new_peptide_feature_list1 = []
 cand_data_list1 = []
-
 
 generate_start_time = time.time()
 
@@ -1184,4 +1181,3 @@ else:
     df.columns = ["配列","スコア","E.coli","DH5α","緑膿菌","黄色","表皮","MDRP","溶血性"]
     df.to_csv("./result/top10.csv", encoding="shift_jis")
 
-'''
