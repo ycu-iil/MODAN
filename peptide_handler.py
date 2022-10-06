@@ -46,7 +46,19 @@ def make_joint_MC(base_mol, MC_mol, pep_len):
         Ca_atom = base_mol.GetAtomWithIdx(atom_index)
     
     
-        h_idx = [x.GetIdx() for x in Ca_atom.GetNeighbors() if x.GetAtomicNum() == 1][0]
+        #h_idx = [x.GetIdx() for x in Ca_atom.GetNeighbors() if x.GetAtomicNum() == 1][0]
+        h_counter = 0
+        cb_counter = 0
+        for x in Ca_atom.GetNeighbors() :
+            if x.GetAtomicNum() == 1:
+                h_counter +=1
+                h_idx = x.GetIdx()
+            elif (x.GetIdx() not in list(matches)) and cb_counter == 0 and x.GetAtomicNum() != 1 and h_counter == 0:
+                cb_counter += 1
+                h_idx = x.GetIdx()
+            else:
+                continue
+
         atom_pair = [Ca_atom.GetIdx(), h_idx]
         #print('atom_pair', atom_pair)
         bs = [base_mol.GetBondBetweenAtoms(atom_pair[0],atom_pair[1]).GetIdx()]
