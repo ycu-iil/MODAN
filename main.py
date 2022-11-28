@@ -12,6 +12,7 @@ import pandas as pd
 import physbo
 import pickle
 import multiprocessing
+import shap 
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -64,7 +65,7 @@ def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
 def smi2repP_skip(smi, peptide_feature, skip = 7):
   return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
-data = pd.read_excel('./data/抗菌ペプチド情報_共同研究_pep9MDRP_20220906.xlsx')
+data = pd.read_excel('./data/抗菌ペプチド情報_共同研究_pep9MDRP_20221017.xlsx')
 data_num = 89
 #data = pd.read_excel('./data/test.xlsx')
 peptide_list = data['修正ペプチド配列'][:data_num]
@@ -196,7 +197,7 @@ for fl in peptide_feature_list:
 #プロリンには対応できていない.
 #L体のみに対応.
 
-base_index = 87
+base_index = 8
 #B:24, U:25, Z:26, S5:27, R8:28, 
 input_aa_list = peptide_feature_list[base_index]
 new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
@@ -547,6 +548,12 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             train_model.set_params(**best_params)
             train_model.fit(X_train, y_train)
 
+            #SHAP解析
+            X_shap = X
+            explainer = shap.TreeExplainer(model=train_model, feature_perturbation='tree_path_dependent')
+            shap_values = explainer.shap_values(X=X_shap)
+            shap.summary_plot(shap_values, X_shap, plot_type="bar")
+            shap.plots.waterfall(explainer(X_shap)[8])
 
             #train_model = lgb.LGBMRegressor() # モデルのインスタンスの作成
             #train_model.fit(X_train, y_train) # モデルの学習
@@ -701,7 +708,7 @@ plt.show()
 
 
 
-base_index = 87
+base_index = 8
 input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
 #max60くらい
