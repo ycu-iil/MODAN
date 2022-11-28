@@ -26,7 +26,7 @@ from acquisition_function import calc_PI_overfmax, calc_PI_underfmin
 from feature_generator import calc_MorganCount, calc_mordred_descriptor
 import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
-from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect
+from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect,replaceS_smiles
 
 def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
   #input_aa_list = args[0]
@@ -224,6 +224,13 @@ for i in range(len(smiles_list)):
     seq_smi = replaceP_smiles(smiles_list[i], peptide_feature_list[i])
     smiles_repP_list.append(seq_smi)
 
+"""
+smiles_repS_list = []
+for i in range(len(smiles_list)):
+    print(i, smiles_list[i])
+    seq_smi = replaceS_smiles(smiles_list[i], peptide_feature_list[i])
+    smiles_repP_list.append(seq_smi)
+"""
 
 # # 特徴量計算
 
@@ -314,8 +321,26 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
+
 #with multiprocessing.Pool(processes = fp_proc_n) as pool:
 #  repP_skip7_Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
+"""
+mol_repS_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repS_list, peptide_feature_list)]
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repS_skip7_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_repS_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repS_skip7_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_repS_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repS_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repS_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repS_skip7_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_repS_skip7_list])
+
+with multiprocessing.Pool(processes = fp_proc_n) as pool:
+  repS_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repS_skip7_list])
+"""
 
 #vertical_feature
 """
