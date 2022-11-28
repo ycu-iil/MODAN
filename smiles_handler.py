@@ -81,6 +81,25 @@ def replaceP_smiles(smi, peptide_feature, base_atom = 'P'):
     #print(Chem.MolToSmiles(x[0]))
     return Chem.MolToSmiles(x[0])
 
+def replaceS_smiles(smi, peptide_feature, base_atom = 'S'):
+    pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
+    mol = Chem.MolFromSmiles(smi)
+    tmp = Chem.MolFromSmiles('NC(=O)C'*(pep_len))
+  
+    #print('[N:1][C:2](=[O:3])[C:4] >> [N:1][C:2](=[O:3])[P:4]')
+    mc_pattern, pc_pattern = '', ''
+    for i in range(pep_len):
+        mc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])[C:'+str(i*4+4)+']'
+        pc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])[S:'+str(i*4+4)+']([H])([H])'
+
+    reaction_pattern = mc_pattern + '>>' + pc_pattern
+    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+    x = rxn.RunReactants([mol])[0]
+    #print(x)
+    #print(Chem.MolToSmiles(x[0]))
+    return Chem.MolToSmiles(x[0])
+
+
 def calc_graph_connect(smi, peptide_feature, skip = 4):
     pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
     mol = Chem.MolFromSmiles(smi)
