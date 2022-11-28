@@ -12,10 +12,10 @@ import pandas as pd
 import physbo
 import pickle
 import multiprocessing
-import shap 
+import shap
 
 from rdkit import Chem
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem, Draw, rdCoordGen
 from rdkit.Chem.Pharm2D import Gobbi_Pharm2D, Generate
 from sklearn import preprocessing 
 from sklearn.model_selection import cross_val_score, KFold
@@ -638,6 +638,26 @@ for smiles_type in ['Pharmacophore']:
     for target_index in [6]:
         for feature in ['Morgan_r4_count']:
             calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
+"""
+
+"""
+#部分構造解析
+bitI_morgan = {}
+mol = mol_repP_skip7_list[68]
+mol.RemoveAllConformers()
+rdCoordGen.AddCoords(mol)
+fp_morgan = AllChem.GetMorganFingerprintAsBitVect(mol, 4, 1024, bitInfo=bitI_morgan)
+
+morgan_turples = ((mol, bit, bitI_morgan) for bit in list(bitI_morgan.keys()))
+print(bitI_morgan[224])
+from IPython.display import SVG
+img = Draw.DrawMorganBits(morgan_turples, molsPerRow=4, legends=['bit: '+str(x) for x in list(bitI_morgan.keys())])
+SVG(img)
+env = Chem.FindAtomEnvironmentOfRadiusN(mol,3,15)
+amap={}
+submol=Chem.PathToSubmol(mol,env,atomMap=amap)
+#print(submol.GetNumAtoms())
+Chem.MolToSmiles(submol)
 """
 
 target_index = 15
