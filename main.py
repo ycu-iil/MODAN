@@ -759,14 +759,14 @@ input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 #max60くらい
 proc_n = 60
 fp_proc_n = 4
-mutation_num = 2 #29
+mutation_num = 1 #29
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
 NNAA_index_list = [9,17,20,22,24,25,26] #[21, 22, 23, 24, 25, 26]
 mutatable_AA_index_list = NNAA_index_list #ここどうするか
 linker_index_list = [27, 28]
-result_type = None  #staple, NNAA
+result_type = "top500"  #staple, NNAA
 
 #linkerは入っていないと仮定. 一番最後に入れる. 最初に変異入れる箇所の候補の組み合わせを出す.
 position_index_list = range(pep_len)
@@ -1192,7 +1192,7 @@ elif result_type == "top500":
         pep = []
         for v in new_peptide_feature_list[top_index]:
             if v ==27 or v == 28:
-                v = 2
+                v = 1
             if v != -2:
                 pep.append(v)
         print(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
@@ -1211,11 +1211,12 @@ elif result_type == "worst500":
                 v = 1
             if v != -2:
                 pep.append(v)
-        print(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
+        #print(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
         result.append(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
     with open('result.txt', 'w') as f:
         for d in result:
             f.write("%s\n" % d)
+    print(len(new_peptide_feature_list))
 
 else:
     ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
@@ -1232,4 +1233,3 @@ else:
     df = pd.DataFrame(Total_result_list)
     df.columns = ["配列","スコア","E.coli","DH5α","緑膿菌","黄色","表皮","MDRP","溶血性"]
     df.to_csv("./result/top10.csv", encoding="shift_jis")
-
