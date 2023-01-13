@@ -410,14 +410,14 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     plt.clf()
 
 
-# Validate predicition accuracy
+#Validate predicition accuracy
 #model list: 'RF', 'lightgbm'
 #feature list: 'Morgan_r2', 'Morgan_r4','Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'Morgan_r2_MACCS', 'one-hot'
 #fold_n: fold num of cross-validation
 
 #target_index
-#5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 9: 'Proteus', 10: '表皮ブドウ球菌', 
-#11: 'Proteus vulgaris', 12: 'Salmonella enterica subsp.', 13: 'Klebsiella pneumoniae', 14: 'MDRP', 15: '溶血性', 16: 'Δ[θ] ([θ]222/[θ]208)'
+#5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 9: 'Proteus', 10: 'Staphylococcus epidermidis', 
+#11: 'Proteus vulgaris', 12: 'Salmonella enterica subsp.', 13: 'Klebsiella pneumoniae', 14: 'MDRP', 15: 'Hemolysis', 16: 'Δ[θ] ([θ]222/[θ]208)'
 
 target_index = 15
 value_log = False
@@ -543,10 +543,8 @@ for i, pep in enumerate(new_peptide_smi_list1):
 
 new_smiles_repP_list = []
 for i in range(len(new_peptide_smi_list)):
-    print(i, new_peptide_smi_list[i])
     seq_smi = replaceP_smiles(new_peptide_smi_list[i], new_peptide_feature_list[i])
     new_smiles_repP_list.append(seq_smi)
-
 
 mol_list = new_peptide_mol_list
 
@@ -566,15 +564,7 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Cand_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
-"""
-Cand_Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_list]
-Cand_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_list]
-Cand_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_list]
-Cand_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_list]
-Cand_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_list]
-"""
 fp_end_time = time.time()
-
 
 #smiles_repP_skip7
 repP_start_time = time.time()
@@ -596,25 +586,11 @@ with multiprocessing.Pool(processes = proc_n) as pool:
 with multiprocessing.Pool(processes = proc_n) as pool:
   Cand_repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
-
-"""
-mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(new_smiles_repP_list, new_peptide_feature_list)]
-Cand_repP_skip7_Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
-Cand_repP_skip7_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
-Cand_repP_skip7_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_skip7_list]
-Cand_repP_skip7_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
-Cand_repP_skip7_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
-"""
 repP_end_time = time.time()
 
-print('linker info time:', linker_end_time - linker_start_time)
-print('smiles generation time:', generate_end_time - generate_start_time)
-print('fp calc time:', fp_end_time - fp_start_time)
-print('repP & fp time:', repP_end_time - repP_start_time)
-
-#target_index
-#5:'大腸菌 (NZRC 3972)', 6:'DH5a', 7:'緑膿菌', '黄色ブドウ球菌', 'プロテウス菌', 
-#'表皮ブドウ球菌', 'Proteus vulgaris', 'Salmonella enterica subsp.', 'Klebsiella pneumoniae（肺炎桿菌）', 'MDRP', 15: '溶血性', 16: Δ[θ] ([θ]222/[θ]208)
+##target_index
+#5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 9: 'Proteus', 10: 'Staphylococcus epidermidis', 
+#11: 'Proteus vulgaris', 12: 'Salmonella enterica subsp.', 13: 'Klebsiella pneumoniae', 14: 'MDRP', 15: 'Hemolysis', 16: 'Δ[θ] ([θ]222/[θ]208)'
 
 target_list = [5, 6, 7, 8, 10, 14, 15]
 threshold_list = [['<=', 5], ['<=', 5], ['<=', 5], ['<=', 5], ['<=', 5],  ['<=', 5], ['>=', 100]]
@@ -636,9 +612,8 @@ for target_i in range(len(target_list)):
     smiles_type = smiles_type_list[target_i]
     feature = feature_list[target_i]
     exp_list = data[target_name][:data_num]
-    print(target_name)
 
-    #数値データの修正
+    #Correction of mumerical data
     filled_index_list = []
     exp_modified_list = []
     for i, v in enumerate(exp_list):
@@ -652,12 +627,10 @@ for target_i in range(len(target_list)):
             if not math.isnan(v):
                 filled_index_list.append(i)
             exp_modified_list.append(v)
-    print('filled_index_list', len(filled_index_list))
     if value_log == True:
         exp_modified_list = np.log10(exp_modified_list)
 
-    #学習モデル準備
-    #学習ペプチド入力データ準備
+    #Preparation to predict activities
     if smiles_type == 'original':
         if feature == 'MACCS':
             X = np.array(MACCS_fp)[filled_index_list]
@@ -677,11 +650,7 @@ for target_i in range(len(target_list)):
             X_cand = np.array(Cand_repP_skip7_Morgan_r2_count)
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
-            X_cand = np.array(Cand_repP_skip7_Morgan_r4_count)
-
-
-    #候補ペプチド入力データ準備
-  
+            X_cand = np.array(Cand_repP_skip7_Morgan_r4_count)  
 
     if model == 'physbo' and standardize:  
         ss = preprocessing.StandardScaler()
@@ -689,11 +658,11 @@ for target_i in range(len(target_list)):
         X_cand = ss.fit_transform(np.array(Cand_Morgan_r4_count))
     y = np.array(exp_modified_list)[filled_index_list]
 
-    #学習
+    #Learning
     print('X', len(X), 'X_cand', len(X_cand), 'y', len(y))
     [y_pred_train, y_pred_cov_train], [y_pred, y_pred_cov] = GP_predict(X, X_cand, y, [0 for i in range(len(X_cand))])
 
-    #calc PI
+    #calculate PI
     if threshold_list[target_i][0] == '<=':
         pi_list = calc_PI_underfmin(y_pred, y_pred_cov, np.log10(threshold_list[target_i][1]))
     elif threshold_list[target_i][0] == '>=':    
@@ -702,11 +671,6 @@ for target_i in range(len(target_list)):
     pred_y_list_list.append(y_pred)
     pred_cov_list_list.append(y_pred_cov)
     pi_list_list.append(pi_list)
-
-    print('cand_data_list', cand_data_list[:5])
-    print('PI', pi_list[:5])
-    print('y_pred', y_pred[:5])
-    print('y_cov', y_pred_cov[:5])
 
     if visualize:
         B_cand_index = [i for i, data in enumerate(cand_data_list) if ((len(data[0][1]) == 1) and (AA_keys[data[0][2][0]] == 'B'))]
@@ -724,13 +688,11 @@ for target_i in range(len(target_list)):
         R8_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 2 and AA_keys[data[0][2][0]] == 'R8']
         plt.errorbar(np.array(range(1, len(y_pred[R8_cand_index]) + 1))-0.07, y_pred[R8_cand_index], yerr = (y_pred_cov**0.5)[R8_cand_index], fmt='o', label = 'R8-S5')
 
-
         plt.legend()
         plt.xlabel('mutation position')
         plt.ylabel(target_name+' (log, predicted)')
         plt.savefig('./result/bo_'+target_name+'_test.png', dpi = 300)
         plt.show()
-
 
 total_pi_score_list = []
 for j in range(len(new_peptide_feature_list)):
@@ -738,7 +700,6 @@ for j in range(len(new_peptide_feature_list)):
     for i in range(len(target_list)):
         score = score*pi_list_list[i][j]
     total_pi_score_list.append(score)
-
 
 plt.plot(total_pi_score_list)
 plt.ylabel('Total PI score')
@@ -804,7 +765,6 @@ elif result_type == "NNAA":
         if 26 in pep:
             ac6c_total_pi_score_list.append(total_pi_score_list[i])
             ac6c_index_list.append(i)
-    
     
     orn_ordered_total_PI_score_index = np.argsort(orn_total_pi_score_list)[::-1]
     for top_index in orn_ordered_total_PI_score_index[:3]:
@@ -886,7 +846,6 @@ elif result_type == "worst500":
                 v = 1
             if v != -2:
                 pep.append(v)
-        #print(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
         result.append(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
     with open('result.txt', 'w') as f:
         for d in result:
@@ -906,5 +865,5 @@ else:
             result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3)) + " " + '(' + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) + ')')
         Total_result_list.append(result_list)
     df = pd.DataFrame(Total_result_list)
-    df.columns = ["配列","スコア","E.coli","DH5α","緑膿菌","黄色","表皮","MDRP","溶血性"]
+    df.columns = ["Sequence","Score","NZRC 3972","DH5α","Pseudomonas aeruginosa","Staphylococcus aureus","Staphylococcus epidermidis","MDRP","Hemolysis"]
     df.to_csv("./result/top10.csv", encoding="shift_jis")
