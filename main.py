@@ -411,22 +411,19 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     plt.clf()
 
 
-# # 予測精度検証
-
+# Validate predicition accuracy
 #model list: 'RF', 'lightgbm'
 #feature list: 'Morgan_r2', 'Morgan_r4','Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'Morgan_r2_MACCS', 'one-hot'
-
 #fold_n: fold num of cross-validation
 
 #target_index
-#5:'大腸菌 (NZRC 3972)', 6:'DH5a', 7:'緑膿菌', '黄色ブドウ球菌', 'プロテウス菌', 
-#'表皮ブドウ球菌', 'Proteus vulgaris', 'Salmonella enterica subsp.', 'Klebsiella pneumoniae（肺炎桿菌）', 'MDRP', 15: '溶血性', 16: Δ[θ] ([θ]222/[θ]208)
+#5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 9: 'Proteus', 10: '表皮ブドウ球菌', 
+#11: 'Proteus vulgaris', 12: 'Salmonella enterica subsp.', 13: 'Klebsiella pneumoniae', 14: 'MDRP', 15: '溶血性', 16: 'Δ[θ] ([θ]222/[θ]208)'
 
 target_index = 15
 value_log = False
 target_name = data.keys()[target_index]
 exp_list = data[target_name][:data_num]
-print(target_name)
 
 #数値データの修正
 filled_index_list = []
