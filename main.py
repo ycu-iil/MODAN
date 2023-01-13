@@ -425,7 +425,7 @@ value_log = False
 target_name = data.keys()[target_index]
 exp_list = data[target_name][:data_num]
 
-#数値データの修正
+#Correction of mumerical data
 filled_index_list = []
 exp_modified_list = []
 for i, v in enumerate(exp_list):
@@ -440,20 +440,13 @@ for i, v in enumerate(exp_list):
             filled_index_list.append(i)
         exp_modified_list.append([v, peptide_feature_list[i][2]])
 
-print(len(filled_index_list))
 if value_log == True:
     exp_modified_list = np.log10(exp_modified_list)
 max = np.max(np.array(exp_modified_list)[filled_index_list][:,0])
 min = np.min(np.array(exp_modified_list)[filled_index_list][:,0])
-#plt.hist(np.array(exp_modified_list)[filled_index_list][:,0], label = 'all', alpha = 0.6, bins = np.arange(min, max, (max-min)/20))
+
 plt.hist([v[0] for v in np.array(exp_modified_list)[filled_index_list] if v[1] < 0], label = 'wo. linker', alpha = 0.6, bins = np.arange(min, max+0.01, (max-min)/20))
 plt.hist([v[0] for v in np.array(exp_modified_list)[filled_index_list] if v[1] > 0], label = 'w. linker', alpha = 0.6, bins = np.arange(min, max+0.01, (max-min)/20))
-
-#plt.hist(exp_modified_nonlinker_list, label = 'wo. linker', alpha = 0.6, bins = np.arange(0, 1.2, 0.05))
-#plt.hist(exp_modified_linker_list, label = 'w. linker', alpha = 0.6, bins = np.arange(0, 1.2, 0.05))
-#plt.hist(exp_modified_nonlinker_list, label = 'wo. linker', alpha = 0.6)
-#plt.hist(exp_modified_linker_list, label = 'w. linker', alpha = 0.6)
-
 
 plt.legend()
 plt.title(target_name+' Log10='+str(value_log))
