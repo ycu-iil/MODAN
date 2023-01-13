@@ -52,7 +52,7 @@ def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
         return Generate.Gen2DFingerprint(mol,Gobbi_Pharm2D.factory)
 
 def smi2repP_skip(smi, peptide_feature, skip = 7):
-  return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
+    return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
 data = pd.read_excel('./data/抗菌ペプチド情報_共同研究_pep9MDRP_20221017.xlsx')
 data_num = 89
