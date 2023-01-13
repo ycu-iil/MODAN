@@ -216,7 +216,7 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     target_name = data.keys()[target_index]
     exp_list = data[target_name][:data_num]
 
-    #数値データの修正
+    #Correction of mumerical data
     filled_index_list = []
     exp_modified_list = []
     for i, v in enumerate(exp_list):
