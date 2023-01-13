@@ -29,28 +29,17 @@ from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
 from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect,replaceS_smiles
 
 def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
-  #input_aa_list = args[0]
-  #mutaion_info = args[1]
-  print(input_aa_list, mutation_info)
-  #リンカー情報
-  input_aa_list[2:4] = mutation_info[0]
-  b  = copy.copy(input_aa_list)
-  c = []
-  for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
-  #   #変異の挿入
-  #   input_aa_list[4+m_pos] = m_aa
-    input_aa_list[4+m_pos] = m_aa
-    c = copy.copy(input_aa_list)
-  if b == c:
-    return None
-    #continue  
-  else:
-    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
-    #new_peptide_feature_list1.append(input_aa_list)
-    #cand_data_list1.append([mutation_info, new_peptide_smi])
-    #new_peptide_mol_list1.append(new_peptide_mol)
-    #new_peptide_smi_list1.append(new_peptide_smi)
-    return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
+    input_aa_list[2:4] = mutation_info[0]
+    b  = copy.copy(input_aa_list)
+    c = []
+    for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
+        input_aa_list[4+m_pos] = m_aa
+        c = copy.copy(input_aa_list)
+    if b == c:
+        return None
+    else:
+        new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)  
+        return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
 
 def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
   if fp_type == 'Morgan':
@@ -759,14 +748,14 @@ input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 #max60くらい
 proc_n = 60
 fp_proc_n = 4
-mutation_num = 1 #29
+mutation_num = 2 #29
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
 NNAA_index_list = [9,17,20,22,24,25,26] #[21, 22, 23, 24, 25, 26]
 mutatable_AA_index_list = NNAA_index_list #ここどうするか
 linker_index_list = [27, 28]
-result_type = "top500"  #staple, NNAA
+result_type = "worst500"  #staple, NNAA
 
 #linkerは入っていないと仮定. 一番最後に入れる. 最初に変異入れる箇所の候補の組み合わせを出す.
 position_index_list = range(pep_len)
