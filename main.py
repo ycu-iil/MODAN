@@ -528,28 +528,6 @@ new_peptide_mol_list1 = [data[1] for data in new_peptide_data_list if data != No
 new_peptide_feature_list1 = [data[2] for data in new_peptide_data_list if data != None]
 cand_data_list1 = [data[3] for data in new_peptide_data_list if data != None]
 
-"""
-for mutation_info in mutation_info_list:
-  print(len(new_peptide_feature_list1), len(mutation_info_list))
-  input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
-  #リンカー情報
-  input_aa_list[2:4] = mutation_info[0]
-  b  = copy.copy(input_aa_list)
-  c = []
-  for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
-  #   #変異の挿入
-  #   input_aa_list[4+m_pos] = m_aa
-    input_aa_list[4+m_pos] = m_aa
-    c = copy.copy(input_aa_list)
-  if b == c:
-    continue  
-  else:
-    new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
-    new_peptide_feature_list1.append(input_aa_list)
-    cand_data_list1.append([mutation_info, new_peptide_smi])
-    new_peptide_mol_list1.append(new_peptide_mol)
-    new_peptide_smi_list1.append(new_peptide_smi)
-"""
 generate_end_time = time.time()
 
 new_peptide_mol_list, new_peptide_smi_list = [], []
