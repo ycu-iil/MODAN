@@ -135,52 +135,24 @@ for peptide_feature in peptide_feature_list:
     pad_len = max_len - len(peptide_feature)
     peptide_feature += [-2] * pad_len
 
-# # 新規ペプチド生成
-# 
-
-#出水先生に指定してもらったデータ
-#番号9, H-GIKKFLKSAKKFVKAFK-NH2, 
-#番号番号69 H-KLLKKAGKLLKKAGKLLKKAG-NH2 
-
-#baseの指定と, 生成したいaa配列を指定する
-#大前提: linker (S5, R8)は配列中に合わせて0個か2個しか出現しない.
-#プロリンには対応できていない.
-#L体のみに対応.
+#Generate new peptides
+#Select base sequence
+#Proline do not been suppoeted
+#Correspnd to only L-amino acids
 
 base_index = 8
-#B:24, U:25, Z:26, S5:27, R8:28, 
 input_aa_list = peptide_feature_list[base_index]
 new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
 
-
-
-#グリシン -H  [1*]-[H]
-#アラニン -CH3 [1*]-C
-#Lysine -CCCCN [1*]-CCCCN
-
-
-#for i in range(len(smiles_list)):
-#5(Ac6c),8(主鎖検出でエラー, 元のSMILES修正でOK), 11(Aib, 架橋),13(Ac5c)
 smiles_woMC_list = []
 for i in range(len(smiles_list)):
-    print(i, smiles_list[i])
     seq_smi = calc_smiles_woMC(smiles_list[i], peptide_feature_list[i])
     smiles_woMC_list.append(seq_smi)
 
-
 smiles_repP_list = []
 for i in range(len(smiles_list)):
-    print(i, smiles_list[i])
     seq_smi = replaceP_smiles(smiles_list[i], peptide_feature_list[i])
     smiles_repP_list.append(seq_smi)
-
-"""
-smiles_repS_list = []
-for i in range(len(smiles_list)):
-    print(i, smiles_list[i])
-    seq_smi = replaceS_smiles(smiles_list[i], peptide_feature_list[i])
-    smiles_repP_list.append(seq_smi)
-"""
 
 # # 特徴量計算
 
