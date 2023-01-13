@@ -258,17 +258,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X0 = np.array(MACCS_fp)[filled_index_list]
             X1 = np.array(Morgan_r4_count)[filled_index_list]
             X = np.concatenate([X0, X1], axis = 1)
-    if smiles_type == 'smiles_repP_skip4':
-        if feature == 'Morgan_r2':
-            X = np.array(repP_skip4_Morgan_r2_fp)[filled_index_list]
-        elif feature == 'Morgan_r4':
-            X = np.array(repP_skip4_Morgan_r4_fp)[filled_index_list]
-        elif feature == 'MACCS':
-            X = np.array(repP_skip4_MACCS_fp)[filled_index_list]
-        elif feature == 'Morgan_r2_count':
-            X = np.array(repP_skip4_Morgan_r2_count)[filled_index_list]
-        elif feature == 'Morgan_r4_count':
-            X = np.array(repP_skip4_Morgan_r4_count)[filled_index_list]
     if smiles_type == 'smiles_repP_skip7':
         if feature == 'Morgan_r2':
             X = np.array(repP_skip7_Morgan_r2_fp)[filled_index_list]
