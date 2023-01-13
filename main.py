@@ -42,14 +42,14 @@ def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
         return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
 
 def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
-  if fp_type == 'Morgan':
-    return AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension)
-  elif fp_type == 'MorganCount':
-    return calc_MorganCount(mol, radial, descriptor_dimension)
-  elif fp_type == 'MACCS':
-    return AllChem.GetMACCSKeysFingerprint(mol)
-  elif fp_type == 'Pharmacophore':
-    return Generate.Gen2DFingerprint(mol,Gobbi_Pharm2D.factory)
+    if fp_type == 'Morgan':
+        return AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension)
+    elif fp_type == 'MorganCount':
+        return calc_MorganCount(mol, radial, descriptor_dimension)
+    elif fp_type == 'MACCS':
+        return AllChem.GetMACCSKeysFingerprint(mol)
+    elif fp_type == 'Pharmacophore':
+        return Generate.Gen2DFingerprint(mol,Gobbi_Pharm2D.factory)
 
 def smi2repP_skip(smi, peptide_feature, skip = 7):
   return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
