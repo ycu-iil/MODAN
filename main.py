@@ -135,7 +135,6 @@ for peptide_feature in peptide_feature_list:
 
 #Generate new peptides
 #Select base sequence
-#Proline do not been suppoeted
 #Correspnd to only L-amino acids
 
 base_index = 8
@@ -458,35 +457,16 @@ else:
     plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
 plt.show()
 
-
-# # BOによる推薦
-
-#候補ペプチドの準備
-
-#出水先生に指定してもらったデータ
-#番号9, H-GIKKFLKSAKKFVKAFK-NH2, 
-#番号番号69 H-KLLKKAGKLLKKAGKLLKKAG-NH2 
-
-#baseの指定と, 生成したいaa配列を指定する
-#実験からの要請: S5,R8に関してに関して
-#1.S5~S5: 間に3つaa, 2重結合周りはcis,
-#2.R8~S5: 間に6つaa, 2重結合周りはtrans
-#S5R8, R8R8はなし.  
-#S5ははR-にアルキルアルキル, R8はR-にメチル
-#プロリン対応済み
-#L体のみに対応.
-
-#作り方の方針: linker以外をN箇所mutation, 最後に最後にlinkerをつける.
-
-
+#Recommend with BO
+#Select base sequence
+#Correspnd to only L-amino acids
 
 base_index = 8
 input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
-#max60くらい
 proc_n = 60
 fp_proc_n = 4
-mutation_num = 2 #29
+mutation_num = 2
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
