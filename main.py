@@ -188,11 +188,11 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
-# # 予測モデル構築準備
+#Preparation for building predicting models
 
 def GP_predict(train_X, test_X, train_y, test_y):
 
-    cov = physbo.gp.cov.gauss(train_X,ard = False )
+    cov = physbo.gp.cov.gauss(train_X,ard = False)
     mean = physbo.gp.mean.const()
     lik = physbo.gp.lik.gauss()
     gp = physbo.gp.model(lik=lik,mean=mean,cov=cov)
@@ -215,7 +215,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 
     target_name = data.keys()[target_index]
     exp_list = data[target_name][:data_num]
-    print(target_name)
 
     #数値データの修正
     filled_index_list = []
@@ -231,7 +230,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             if not math.isnan(v):
                 filled_index_list.append(i)
             exp_modified_list.append(v)
-    print(len(filled_index_list))
     if value_log == True:
         exp_modified_list = np.log10(exp_modified_list)
     plt.hist(np.array(exp_modified_list)[filled_index_list])
@@ -244,8 +242,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
         plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
     plt.show()
 
-
-    print('feature', feature, smiles_type)
     if smiles_type == 'original':
         if feature == 'one-hot':
             X = np.array(peptide_feature_list)[filled_index_list]
@@ -263,8 +259,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X0 = np.array(MACCS_fp)[filled_index_list]
             X1 = np.array(Morgan_r4_count)[filled_index_list]
             X = np.concatenate([X0, X1], axis = 1)
-        elif feature == 'Pharmacophore':
-            X = np.array(Pharmacophore_fp)[filled_index_list]
     if smiles_type == 'smiles_woMC':
         if feature == 'Morgan_r2':
             X = np.array(woMC_Morgan_r2_fp)[filled_index_list]
@@ -276,8 +270,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(woMC_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(woMC_Morgan_r4_count)[filled_index_list]
-        elif feature == 'Pharmacophore':
-            X = np.array(woMC_Pharmacophore_fp)[filled_index_list]
     if smiles_type == 'smiles_repP':
         if feature == 'Morgan_r2':
             X = np.array(repP_Morgan_r2_fp)[filled_index_list]
@@ -289,8 +281,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_Morgan_r4_count)[filled_index_list]
-        elif feature == 'Pharmacophore':
-            X = np.array(repP_Pharmacophore_fp)[filled_index_list]
     if smiles_type == 'smiles_repP_skip4':
         if feature == 'Morgan_r2':
             X = np.array(repP_skip4_Morgan_r2_fp)[filled_index_list]
@@ -302,8 +292,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_skip4_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_skip4_Morgan_r4_count)[filled_index_list]
-        elif feature == 'Pharmacophore':
-            X = np.array(repP_skip4_Pharmacophore_fp)[filled_index_list]
     if smiles_type == 'smiles_repP_skip7':
         if feature == 'Morgan_r2':
             X = np.array(repP_skip7_Morgan_r2_fp)[filled_index_list]
@@ -315,45 +303,12 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(repP_skip7_Morgan_r4_count)[filled_index_list]
-        #elif feature == 'Pharmacophore':
-        #    X = np.array(repP_skip7_Pharmacophore_fp)[filled_index_list]
-    """
-    if smiles_type == 'vertical_skip7':
-        if feature == 'Morgan_r2':
-            X = np.array(v_skip7_Morgan_r2_fp)[filled_index_list]
-        elif feature == 'Morgan_r4':
-            X = np.array(v_skip7_Morgan_r4_fp)[filled_index_list]
-        elif feature == 'MACCS':
-            X = np.array(v_skip7_MACCS_fp)[filled_index_list]
-        elif feature == 'mordred':
-            X = np.array(v_skip7_mordred_descriptor)[filled_index_list]
-        elif feature == 'Morgan_r2_count':
-            X = np.array(v_skip7_Morgan_r2_count)[filled_index_list]
-        elif feature == 'Morgan_r4_count':
-            X = np.array(v_skip7_Morgan_r4_count)[filled_index_list]
-    if smiles_type == 'vertical_skip4':
-        if feature == 'Morgan_r2':
-            X = np.array(v_skip4_Morgan_r2_fp)[filled_index_list]
-        elif feature == 'Morgan_r4':
-            X = np.array(v_skip4_Morgan_r4_fp)[filled_index_list]
-        elif feature == 'MACCS':
-            X = np.array(v_skip4_MACCS_fp)[filled_index_list]
-        elif feature == 'mordred':
-            X = np.array(v_skip4_mordred_descriptor)[filled_index_list]
-        elif feature == 'Morgan_r2_count':
-            X = np.array(v_skip4_Morgan_r2_count)[filled_index_list]
-        elif feature == 'Morgan_r4_count':
-            X = np.array(v_skip4_Morgan_r4_count)[filled_index_list]
-    """
 
     if model == 'physbo' and standardize: 
         ss = preprocessing.StandardScaler()
         X = ss.fit_transform(X)
   
     y = np.array(exp_modified_list)[filled_index_list]
-
-    print(X)
-    print(y)
 
     kf = KFold(n_splits = fold_n, shuffle = True, random_state=0)
 
@@ -377,7 +332,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
         return scores.mean()
 
     for train_index, test_index in kf.split(X):
-        print(train_index, test_index)
         X_train = X[train_index]
         y_train = y[train_index]
         X_test = X[test_index]
