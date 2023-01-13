@@ -421,37 +421,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 #target_index
 #5:'大腸菌 (NZRC 3972)', 6:'DH5a', 7:'緑膿菌', '黄色ブドウ球菌', 'プロテウス菌', 
 #'表皮ブドウ球菌', 'Proteus vulgaris', 'Salmonella enterica subsp.', 'Klebsiella pneumoniae（肺炎桿菌）', 'MDRP', 15: '溶血性', 16: Δ[θ] ([θ]222/[θ]208)
-"""
-#活性値にlog10を入れるか否か否か
-value_log = False
-#smiles_type = 'vertical_skip4' #'original', 'smiles_repP_skip7', 'smiles_woMC', 'vertical_skip4', 'vertical_skip7'
-model = 'physbo'
-fold_n = 10
-for smiles_type in ['Pharmacophore']:
-    for target_index in [6]:
-        for feature in ['Morgan_r4_count']:
-            calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log, standardize = False)
-"""
-
-"""
-#部分構造解析
-bitI_morgan = {}
-mol = mol_repP_skip7_list[68]
-mol.RemoveAllConformers()
-rdCoordGen.AddCoords(mol)
-fp_morgan = AllChem.GetMorganFingerprintAsBitVect(mol, 4, 1024, bitInfo=bitI_morgan)
-
-morgan_turples = ((mol, bit, bitI_morgan) for bit in list(bitI_morgan.keys()))
-print(bitI_morgan[224])
-from IPython.display import SVG
-img = Draw.DrawMorganBits(morgan_turples, molsPerRow=4, legends=['bit: '+str(x) for x in list(bitI_morgan.keys())])
-SVG(img)
-env = Chem.FindAtomEnvironmentOfRadiusN(mol,3,15)
-amap={}
-submol=Chem.PathToSubmol(mol,env,atomMap=amap)
-#print(submol.GetNumAtoms())
-Chem.MolToSmiles(submol)
-"""
 
 target_index = 15
 value_log = False
