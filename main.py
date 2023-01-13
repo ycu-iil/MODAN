@@ -56,64 +56,44 @@ def smi2repP_skip(smi, peptide_feature, skip = 7):
 
 data = pd.read_excel('./data/抗菌ペプチド情報_共同研究_pep9MDRP_20221017.xlsx')
 data_num = 89
-#data = pd.read_excel('./data/test.xlsx')
 peptide_list = data['修正ペプチド配列'][:data_num]
-for p in peptide_list:
-    print(p)
 smiles_list = data['SMILES'][:data_num]
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
-
-
 AA_dict = metadata.AA_dict
 AA_joint = metadata.AA_joint
-
 AA_keys = list(AA_dict.keys())
+
 link_index_list = []
 for st in ['S5', 'R8', 's5', 'r8', '=']:
     link_index_list.append(AA_keys.index(st))
-print('link_index_list', link_index_list)
-
 
 SR_index_list = []
 for st in ['S', 'R', 's', 'r']:
     SR_index_list.append(AA_keys.index(st))
-print('SR_index_list', SR_index_list)
-
 
 ct_list, nt_list = [], []
 for peptide in peptide_list:
-    #remove '\xa0' and ' ' in peptide string
     peptide = unicodedata.normalize("NFKD", peptide).strip()
     ct,aa_list,nt = peptide.split('-')
     ct_list.append(ct)
     nt_list.append(nt)
 ct_list = list(set(ct_list))
 nt_list = list(set(nt_list))
-print('ct_list', ct_list)
-print('nt_list', nt_list)
-
 
 peptide_feature_list = []
-#for peptide in peptide_list[35:36]:
 for peptide in peptide_list:
-    print(peptide)
     peptide = unicodedata.normalize("NFKD", peptide).strip()
     ct,aa_list,nt = peptide.split('-')
     ct_index = ct_list.index(ct)
     nt_index = nt_list.index(nt)
-  
-    print(aa_list)
-    ##Indexing AA-sequence
+
     tmp_list = []
     for i, AA_key in enumerate(AA_dict.keys()):
         res = re.finditer(AA_key, aa_list)
         for s in res:
             tmp_list.append([s.span()[0], i])
-            print(i, AA_key, s.span()[0])
     tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
 
-    #'S', 'S5'等の重複削除
-    print('tmp_list', tmp_list)
     new_tmp_list = []
     for tmp in tmp_list:
         if tmp[0]+1 < len(aa_list):
@@ -122,12 +102,9 @@ for peptide in peptide_list:
                     continue
         new_tmp_list.append(tmp)
     tmp_list = new_tmp_list
-    print('removed_tmp_list', tmp_list)
- 
 
     AA_index_list = []
     link_list = []
-
     for pair in tmp_list:
         if pair[1] in link_index_list:
             link_list.append(len(AA_index_list)+1)
@@ -137,19 +114,10 @@ for peptide in peptide_list:
     if len(link_list) == 0:
         link_list = [-1, -1]
     peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
-    print(peptide_feature)
     peptide_feature_list.append(peptide_feature)
 
-
-
 for i, pf in enumerate(peptide_feature_list):
-  
     seq = peptide_feature2AA_seq(pf, AA_keys, ct_list, nt_list)
-    print(i, seq)
-    print(i, peptide_list[i])
-    print('')
-
-#Check
 
 AA_keys = list(AA_dict.keys())
 
@@ -161,19 +129,12 @@ for i, pf in enumerate(peptide_feature_list):
         aa_seq += AA_keys[k]
   
     seq = ct_list[pf[0]]+'-'+aa_seq+'-'+nt_list[pf[1]]
-    print(i, seq)
-    print(i, peptide_list[i])
-    print('')
 
-#padding
 max_len = np.max([len(v) for v in peptide_feature_list])
-print('max_len', max_len)
 for peptide_feature in peptide_feature_list:
     pad_len = max_len - len(peptide_feature)
     peptide_feature += [-2] * pad_len
 
-for fl in peptide_feature_list:
-    print(fl)
 # # 新規ペプチド生成
 # 
 
