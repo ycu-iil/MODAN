@@ -357,15 +357,13 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             train_model.set_params(**best_params)
             train_model.fit(X_train, y_train)
 
-            #SHAP解析
+            #SHAP analysis
             X_shap = X
             explainer = shap.TreeExplainer(model=train_model, feature_perturbation='tree_path_dependent')
             shap_values = explainer.shap_values(X=X_shap)
             shap.summary_plot(shap_values, X_shap, plot_type="bar")
             shap.plots.waterfall(explainer(X_shap)[8])
 
-            #train_model = lgb.LGBMRegressor() # モデルのインスタンスの作成
-            #train_model.fit(X_train, y_train) # モデルの学習
             y_pred = train_model.predict(X_test)
             y_train_pred = train_model.predict(X_train)
 
@@ -376,30 +374,17 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
             [y_train_pred, y_train_pred_cov], [y_pred, y_pred_cov] = GP_predict(X_train, X_test, y_train, y_test)
             train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
             train_r = np.corrcoef(y_train, y_train_pred)[0][1]
-            print('train_rmse', train_rmse, 'train_r', train_r)
 
             y_pred_list += list(y_pred)
             y_test_list += list(y_test)
 
-
         y_index_list += list(test_index)
-        #r2 = r2_score(y_test, y_pred),
-        #rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-        #print(r2, rmse)
         r = np.corrcoef(y_test_list, y_pred_list)[0][1]
         r2 = r2_score(y_test_list, y_pred_list)
-        #auc = roc_auc_score(y_test_list, y_pred_list)
         rmse = np.sqrt(mean_squared_error(y_test_list, y_pred_list))
-        print(len(y_pred_list), 'r', r, 'r2', r2, 'RMSE', rmse, smiles_type, model, feature, fold_n, target_index)
-
-
-
-    # Feature Importance
-    #fti = clf_rf.feature_importances_   
 
     r = np.corrcoef(y_test_list, y_pred_list)[0][1]
     r2 = r2_score(y_test_list, y_pred_list)
-    #auc = roc_auc_score(y_test_list, y_pred_list)
 
     rmse = np.sqrt(mean_squared_error(y_test_list, y_pred_list))
     print('RESULT', model, feature, fold_n, target_index)
@@ -418,7 +403,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     else:
         plt.xlabel('Experimental value')
         plt.ylabel('Predicted value')
-    #plt.axes().set_aspect('equal')
     if target_name == 'Δ[θ] ([θ]222/[θ]208)':
         plt.savefig('./result/helix-like_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
     else:
