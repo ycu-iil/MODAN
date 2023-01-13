@@ -470,35 +470,26 @@ mutation_num = 2
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
-NNAA_index_list = [9,17,20,22,24,25,26] #[21, 22, 23, 24, 25, 26]
-mutatable_AA_index_list = NNAA_index_list #ここどうするか
+NNAA_index_list = [9,17,20,22,24,25,26]
+mutatable_AA_index_list = NNAA_index_list
 linker_index_list = [27, 28]
-result_type = "worst500"  #staple, NNAA
+result_type = "worst500"
 
-#linkerは入っていないと仮定. 一番最後に入れる. 最初に変異入れる箇所の候補の組み合わせを出す.
 position_index_list = range(pep_len)
 pos_comb_list = itertools.combinations(position_index_list, mutation_num)
 
-#mutation_infoの構造の構造
-#[linker_info, mutation_pos_list, mutation_aa_list]
-mutation_info_list = [[[-1, -1], [], []]] #何も変異しないものも用意,　後にlinkerがつくことはあり 
-
+mutation_info_list = [[[-1, -1], [], []]]
 
 for pos_comb in pos_comb_list:
-    #print(pos_comb)
     for mutation_pos in pos_comb:
         for mutation_aa in itertools.product(mutatable_AA_index_list, repeat = mutation_num):
             mutation_info_list.append([[-1, -1], list(pos_comb), list(mutation_aa)])
-            #print(pos_comb, mutation_aa)
-      
-print(len(mutation_info_list))
 
-#linker をつけたものの情報を生成
+#Generate information of peptides including staple 
 linker_start_time = time.time()
 linker_mutation_info_list = []
 for m_i, mutation_info in enumerate(mutation_info_list):
   
-    print('linker', m_i, len(mutation_info_list))
     for i in range(pep_len):
         for un in linker_index_list:
             if un == 27: #S5-S5
@@ -520,7 +511,6 @@ for m_i, mutation_info in enumerate(mutation_info_list):
                 linker_mutation_info_list.append(new_mutation_info)
 
 mutation_info_list = mutation_info_list + linker_mutation_info_list
-print(len(mutation_info_list))
 linker_end_time = time.time()
 
 new_peptide_mol_list1, new_peptide_smi_list1 = [], []
@@ -530,7 +520,7 @@ cand_data_list1 = []
 generate_start_time = time.time()
 
 args_list = [(copy.deepcopy(peptide_feature_list[base_index]), mutation_info) for mutation_info in mutation_info_list]
-print('args_list', args_list)
+
 with multiprocessing.Pool(processes = proc_n) as pool:
   new_peptide_data_list = pool.starmap(generate_peptide_from_mutation_info, args_list)
 new_peptide_smi_list1 = [data[0] for data in new_peptide_data_list if data != None]
