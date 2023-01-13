@@ -48,8 +48,6 @@ def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
         return calc_MorganCount(mol, radial, descriptor_dimension)
     elif fp_type == 'MACCS':
         return AllChem.GetMACCSKeysFingerprint(mol)
-    elif fp_type == 'Pharmacophore':
-        return Generate.Gen2DFingerprint(mol,Gobbi_Pharm2D.factory)
 
 def smi2repP_skip(smi, peptide_feature, skip = 7):
     return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
@@ -154,13 +152,9 @@ for i in range(len(smiles_list)):
     seq_smi = replaceP_smiles(smiles_list[i], peptide_feature_list[i])
     smiles_repP_list.append(seq_smi)
 
-# # 特徴量計算
-
 #Calculation of Fingerprint, descriptor
 descriptor_dimension = 1024
-
 radial = 4
-
 fp_proc_n = 4
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
@@ -177,9 +171,6 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
-
-#with multiprocessing.Pool(processes = fp_proc_n) as pool:
-#  Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_list])
 
 """
 #original smiles
