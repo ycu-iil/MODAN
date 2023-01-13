@@ -172,52 +172,6 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
-"""
-#original smiles
-Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_list]
-Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_list]
-MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_list]
-Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_list]
-Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_list]
-Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_list]
-
-#smiles_woMC
-mol_woMC_list = [Chem.MolFromSmiles(smi) for smi in smiles_woMC_list]
-woMC_Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_woMC_list]
-woMC_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_woMC_list]
-woMC_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_woMC_list]
-woMC_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_woMC_list]
-woMC_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_woMC_list]
-woMC_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_woMC_list]
-
-#smiles_repP
-mol_repP_list = [Chem.MolFromSmiles(smi) for smi in smiles_repP_list]
-repP_Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_repP_list]
-repP_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_repP_list]
-repP_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_list]
-repP_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_list]
-repP_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_list]
-repP_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_repP_list]
-
-#smiles_repP_skip4
-mol_repP_skip4_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 4)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
-repP_skip4_Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_repP_skip4_list]
-repP_skip4_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_repP_skip4_list]
-repP_skip4_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_skip4_list]
-repP_skip4_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip4_list]
-repP_skip4_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip4_list]
-repP_skip4_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_repP_skip4_list]
-
-#smiles_repP_skip7
-mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
-repP_skip7_Morgan_r2_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
-repP_skip7_Morgan_r4_fp = [AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
-repP_skip7_MACCS_fp = [AllChem.GetMACCSKeysFingerprint(mol) for mol in mol_repP_skip7_list]
-repP_skip7_Morgan_r2_count = [calc_MorganCount(mol, 2, descriptor_dimension) for mol in mol_repP_skip7_list]
-repP_skip7_Morgan_r4_count = [calc_MorganCount(mol, radial, descriptor_dimension) for mol in mol_repP_skip7_list]
-repP_skip7_Pharmacophore_fp = [Generate.Gen2DFingerprint(mol, Gobbi_Pharm2D.factory) for mol in mol_repP_skip7_list]
-"""
-
 mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   repP_skip7_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
@@ -233,43 +187,6 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
-
-
-#with multiprocessing.Pool(processes = fp_proc_n) as pool:
-#  repP_skip7_Pharmacophore_fp = pool.starmap(mol2FP, [(mol, 'Pharmacophore', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
-"""
-mol_repS_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repS_list, peptide_feature_list)]
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  repS_skip7_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_repS_skip7_list])
-
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  repS_skip7_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_repS_skip7_list])
-
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  repS_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repS_skip7_list])
-
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  repS_skip7_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_repS_skip7_list])
-
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  repS_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repS_skip7_list])
-"""
-
-#vertical_feature
-"""
-v_skip4_Morgan_r2_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 4, feature = 'Morgan_r2', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
-v_skip4_Morgan_r4_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 4, feature = 'Morgan_r4', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
-v_skip4_Morgan_r2_count = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 4, feature = 'Morgan_r2_count', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
-v_skip4_Morgan_r4_count = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 4, feature = 'Morgan_r4_count', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
-v_skip4_MACCS_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 4, feature = 'MACCS') for i in range(len(smiles_list))]
-
-v_skip7_Morgan_r2_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'Morgan_r2', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
-v_skip7_Morgan_r4_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'Morgan_r4', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
-v_skip7_Morgan_r2_count = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'Morgan_r2_count', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
-v_skip7_Morgan_r4_count = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'Morgan_r4_count', descriptor_dimension = descriptor_dimension) for i in range(len(smiles_list))]
-v_skip7_MACCS_fp = [calc_feature_skip_connection(smiles_list[i], peptide_feature_list[i], skip = 7, feature = 'MACCS') for i in range(len(smiles_list))]
-"""
-
 
 # # 予測モデル構築準備
 
