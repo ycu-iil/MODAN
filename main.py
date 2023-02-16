@@ -157,12 +157,6 @@ radial = 4
 fp_proc_n = 4
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_list])
-
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_list])
-
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
   MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
@@ -172,11 +166,6 @@ with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
 mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  repP_skip7_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
-
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  repP_skip7_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
@@ -242,28 +231,14 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     plt.show()
 
     if smiles_type == 'original':
-        if feature == 'one-hot':
-            X = np.array(peptide_feature_list)[filled_index_list]
-        elif feature == 'Morgan_r2':
-            X = np.array(Morgan_r2_fp)[filled_index_list]
-        elif feature == 'Morgan_r4':
-            X = np.array(Morgan_r4_fp)[filled_index_list]
-        elif feature == 'MACCS':
+        if feature == 'MACCS':
             X = np.array(MACCS_fp)[filled_index_list]
         elif feature == 'Morgan_r2_count':
             X = np.array(Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(Morgan_r4_count)[filled_index_list]
-        elif feature == 'MACCS+Morgan_r4_count':
-            X0 = np.array(MACCS_fp)[filled_index_list]
-            X1 = np.array(Morgan_r4_count)[filled_index_list]
-            X = np.concatenate([X0, X1], axis = 1)
     if smiles_type == 'smiles_repP_skip7':
-        if feature == 'Morgan_r2':
-            X = np.array(repP_skip7_Morgan_r2_fp)[filled_index_list]
-        elif feature == 'Morgan_r4':
-            X = np.array(repP_skip7_Morgan_r4_fp)[filled_index_list]
-        elif feature == 'MACCS':
+        if feature == 'MACCS':
             X = np.array(repP_skip7_MACCS_fp)[filled_index_list]
         elif feature == 'Morgan_r2_count':
             X = np.array(repP_skip7_Morgan_r2_count)[filled_index_list]
