@@ -491,11 +491,6 @@ for i in range(len(new_peptide_smi_list)):
 mol_list = new_peptide_mol_list
 
 fp_start_time = time.time()
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  Cand_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_list])
-
-with multiprocessing.Pool(processes = fp_proc_n) as pool:
-  Cand_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_list])
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   Cand_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
