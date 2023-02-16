@@ -41,10 +41,8 @@ def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
         new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)  
         return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
 
-def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
-    if fp_type == 'Morgan':
-        return AllChem.GetMorganFingerprintAsBitVect(mol, radial, descriptor_dimension)
-    elif fp_type == 'MorganCount':
+def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):   
+    if fp_type == 'MorganCount':
         return calc_MorganCount(mol, radial, descriptor_dimension)
     elif fp_type == 'MACCS':
         return AllChem.GetMACCSKeysFingerprint(mol)
