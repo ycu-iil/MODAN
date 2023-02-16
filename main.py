@@ -539,12 +539,6 @@ with multiprocessing.Pool(processes = proc_n) as pool:
   mol_repP_skip7_list = pool.starmap(smi2repP_skip, [(smi, peptide_feature, 7) for smi, peptide_feature in zip(new_smiles_repP_list, new_peptide_feature_list)])
 
 with multiprocessing.Pool(processes = proc_n) as pool:
-  Cand_repP_skip7_Morgan_r2_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
-
-with multiprocessing.Pool(processes = proc_n) as pool:
-  Cand_repP_skip7_Morgan_r4_fp = pool.starmap(mol2FP, [(mol, 'Morgan', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
-
-with multiprocessing.Pool(processes = proc_n) as pool:
   Cand_repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
 
 with multiprocessing.Pool(processes = proc_n) as pool:
@@ -685,28 +679,8 @@ with open('result/pred_y_list_list.pkl', mode='wb') as f:
 with open('result/pred_cov_list_list.pkl', mode='wb') as f:
     pickle.dump(pred_cov_list_list, f)   
     
-
-if result_type == "staple":
-    only_staple_total_pi_score_list = []
-    index_list = []
-    index = -1
-
-    for i in cand_data_list:
-        index += 1
-        if i[0][0][0] != -1:
-            index_list.append(index)
-            only_staple_total_pi_score_list.append(total_pi_score_list[index])
-
-    ordered_total_PI_score_index = np.argsort(only_staple_total_pi_score_list)[::-1]
-
-    for top_index in ordered_total_PI_score_index[:10]:
-        print( 'total_pi_score', round(only_staple_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[index_list[top_index]] if v != -2],AA_keys, ct_list, nt_list))
-        for target_i in range(len(target_list)):
-            target_index = target_list[target_i]
-            target_name = data.keys()[target_index]
-            print('  ', target_name, round(10**pred_y_list_list[target_i][index_list[top_index]], 3),  '(', round(pred_cov_list_list[target_i][top_index]**0.5,3), ')' )  
-
-elif result_type == "NNAA":
+   
+if result_type == "NNAA":
     orn_total_pi_score_list, orn_index_list = [], []
     dab_total_pi_score_list, dab_index_list = [], []
     ac5c_total_pi_score_list,ac5c_index_list = [], []
@@ -772,53 +746,7 @@ elif result_type == "NNAA":
             target_index = target_list[target_i]
             target_name = data.keys()[target_index]
             print('  ', target_name, round(10**pred_y_list_list[target_i][ac6c_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][ac6c_index_list[top_index]]**0.5,3), ')' )
-
-elif result_type == "reverse":
-    onlyAA_total_pi_score_list,  onlyAA_index_list = [], []
-    for i, pep in enumerate(new_peptide_feature_list):
-        if 20 not in pep and 22 not in pep and 24 not in pep and 25 not in pep and 26 not in pep and 27 not in pep and 28 not in pep:
-            onlyAA_total_pi_score_list.append(total_pi_score_list[i])
-            onlyAA_index_list.append(i)
-    ordered_total_PI_score_index = np.argsort(onlyAA_total_pi_score_list)
-    for top_index in ordered_total_PI_score_index[:3]:
-        print('index', top_index, 'total_pi_score', round(onlyAA_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[onlyAA_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[onlyAA_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
-        for target_i in range(len(target_list)):
-            target_index = target_list[target_i]
-            target_name = data.keys()[target_index]
-            print('  ', target_name, round(10**pred_y_list_list[target_i][onlyAA_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][onlyAA_index_list[top_index]]**0.5,3), ')' )
-
-elif result_type == "top500":
-    result = []
-    ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
-    for top_index in ordered_total_PI_score_index[:500]:
-        pep = []
-        for v in new_peptide_feature_list[top_index]:
-            if v ==27 or v == 28:
-                v = 1
-            if v != -2:
-                pep.append(v)
-        print(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
-        result.append(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
-    with open('result.txt', 'w') as f:
-        for d in result:
-            f.write("%s\n" % d)
-
-elif result_type == "worst500":
-    result = []
-    ordered_total_PI_score_index = np.argsort(total_pi_score_list)
-    for top_index in ordered_total_PI_score_index[:500]:
-        pep = []
-        for v in new_peptide_feature_list[top_index]:
-            if v ==27 or v == 28:
-                v = 1
-            if v != -2:
-                pep.append(v)
-        result.append(peptide_feature2AA_seq(pep, AA_keys, ct_list, nt_list).strip("H-").strip("-NH2").replace("=",""))
-    with open('result.txt', 'w') as f:
-        for d in result:
-            f.write("%s\n" % d)
-    print(len(new_peptide_feature_list))
-
+ 
 else:
     ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
     Total_result_list = []
