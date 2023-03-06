@@ -1,5 +1,39 @@
 # MODAN
 
+MODAN is a multi-objective Bayesian framework for the design of antimicrobial peptides (AMPs) considering any non-proteinogenic amino acids (NPAAs) containing α, α-disubstituted NPAAs and side-chain stapling.
+
+## How to setup
+
+```bash
+pip install rdkit-pypi
+pip install scikit-learn
+pip install lightgbm
+pip install optuna
+pip install pandas
+pip install matplotlib
+pip install mordred
+pip install physbo
+```
+
+## How to run MODAN
+
+### 1.Clone this repository and move into it
+XXXX
+
+### 2. Prepare a config file
+
+## Contact
+・Kei terayama (terayama@yokohama-cu.ac.jp)
+
+
+
+
+
+
+
+
+
+以下は元文章
 アミノ酸記号 http://nomenclator.la.coocan.jp/chem/text/aminosym.htm
 修正方針
 
@@ -31,20 +65,6 @@
 - 架橋は別フラグを用意する.
 - 特徴量の全体は, C末端情報, N末端情報, AA配列情報(indexの後に架橋しているかのbit,D体(0)L体(1)のbit, の繰り返し) 
 
-## Requirements
-
-### How to setup
-
-```bash
-pip install rdkit-pypi
-pip install scikit-learn
-pip install lightgbm
-pip install optuna
-pip install pandas
-pip install matplotlib
-pip install mordred
-pip install physbo
-```
 
 `./data` に `抗菌ペプチド情報_共同研究(寺山先生)_出水_修正版20220322.xlsx` を配置する。
 番号83は空行なので削除。
