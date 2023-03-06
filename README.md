@@ -1,4 +1,4 @@
-# NNpeptide_genration
+# MODAN
 
 アミノ酸記号 http://nomenclator.la.coocan.jp/chem/text/aminosym.htm
 修正方針
