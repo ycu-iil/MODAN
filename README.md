@@ -20,7 +20,11 @@ pip install physbo
 ### 1.Clone this repository and move into it
 XXXX
 
-### 2. Prepare a config file
+### 2. Prepare configfile
+Prepare NPAAs
+
+
+### 3. Recommendate AMP candidates
 
 ## Contact
 ・Kei terayama (terayama@yokohama-cu.ac.jp)
