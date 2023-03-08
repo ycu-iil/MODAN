@@ -55,7 +55,7 @@ def smi2repP_skip(smi, peptide_feature, skip = 7):
     return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
 data = pd.read_excel(config['data'])
-data_num = 89
+data_num = config['data_num'] 
 peptide_list = data['修正ペプチド配列'][:data_num]
 smiles_list = data['SMILES'][:data_num]
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
@@ -363,8 +363,8 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 #5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 9: 'Proteus', 10: 'Staphylococcus epidermidis', 
 #11: 'Proteus vulgaris', 12: 'Salmonella enterica subsp.', 13: 'Klebsiella pneumoniae', 14: 'MDRP', 15: 'Hemolysis', 16: 'Δ[θ] ([θ]222/[θ]208)'
 
-target_index = 15
-value_log = False
+target_index = config['target_index']
+value_log = config['value_log']
 target_name = data.keys()[target_index]
 exp_list = data[target_name][:data_num]
 
@@ -405,19 +405,19 @@ plt.show()
 #Select base sequence
 #Correspnd to only L-amino acids
 
-base_index = 8
+base_index = config['base_index']
 input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
-proc_n = 60
-fp_proc_n = 4
-mutation_num = 1
+proc_n = config['proc_n']
+fp_proc_n = config['fp_proc_n']
+mutation_num = config['mutation_num']
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
-NAA_index_list = list(range(21))
-NNAA_index_list = [9,17,20,22,24,25,26]
-mutatable_AA_index_list = NNAA_index_list
-linker_index_list = [27, 28]
-result_type = None
+NAA_index_list = list(range(config['NAA_index_list']))
+NNAA_index_list = config['NNAA_index_list']
+mutatable_AA_index_list = config['NNAA_index_list']
+linker_index_list = config['linker_index_list']
+result_type = config['result_type']
 
 position_index_list = range(pep_len)
 pos_comb_list = itertools.combinations(position_index_list, mutation_num)
@@ -525,14 +525,14 @@ repP_end_time = time.time()
 #5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 9: 'Proteus', 10: 'Staphylococcus epidermidis', 
 #11: 'Proteus vulgaris', 12: 'Salmonella enterica subsp.', 13: 'Klebsiella pneumoniae', 14: 'MDRP', 15: 'Hemolysis', 16: 'Δ[θ] ([θ]222/[θ]208)'
 
-target_list = [5, 6, 7, 8, 10, 14, 15]
-threshold_list = [['<=', 5], ['<=', 5], ['<=', 5], ['<=', 5], ['<=', 5],  ['<=', 5], ['>=', 100]]
-smiles_type_list = ['smiles_repP_skip7', 'smiles_repP_skip7', 'original', 'original', 'original', 'smiles_repP_skip7', 'smiles_repP_skip7']
-model = 'physbo'
-feature_list = ['MACCS', 'Morgan_r4_count', 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'Morgan_r4_count', 'Morgan_r4_count']
-value_log = True
-standardize = False
-visualize = True
+target_list = config['target_list']
+threshold_list = config['threshold_list']
+smiles_type_list = config['smiles_type_list']
+model = config['model']
+feature_list = config['feature_list']
+value_log = config['value_log']
+standardize = config['standardize']
+visualize = config['visualize']
 
 pred_y_list_list = []
 pred_cov_list_list = []
