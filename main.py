@@ -13,6 +13,7 @@ import physbo
 import pickle
 import multiprocessing
 import shap
+import yaml
 
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, rdCoordGen
@@ -27,6 +28,9 @@ from feature_generator import calc_MorganCount, calc_mordred_descriptor
 import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
 from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect,replaceS_smiles
+
+with open('./config/setting.yaml') as file:
+    config = yaml.safe_load(file.read())
 
 def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
     input_aa_list[2:4] = mutation_info[0]
@@ -50,7 +54,7 @@ def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):
 def smi2repP_skip(smi, peptide_feature, skip = 7):
     return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
-data = pd.read_excel('./data/抗菌ペプチド情報_共同研究_pep9MDRP_20221017.xlsx')
+data = pd.read_excel(config['data'])
 data_num = 89
 peptide_list = data['修正ペプチド配列'][:data_num]
 smiles_list = data['SMILES'][:data_num]
@@ -406,14 +410,14 @@ input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
 
 proc_n = 60
 fp_proc_n = 4
-mutation_num = 2
+mutation_num = 1
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(21))
 NNAA_index_list = [9,17,20,22,24,25,26]
 mutatable_AA_index_list = NNAA_index_list
 linker_index_list = [27, 28]
-result_type = "worst500"
+result_type = None
 
 position_index_list = range(pep_len)
 pos_comb_list = itertools.combinations(position_index_list, mutation_num)
