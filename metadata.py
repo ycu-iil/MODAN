@@ -1,6 +1,6 @@
 from itertools import chain
 
-
+# Amino acid name
 L_AA_dict = {
     'A': 'Alanine',
     'C': 'Cysteine',
@@ -64,7 +64,7 @@ D_AA_dict = {
     'r8': 'D-(R)-2-(7-pentenyl)Alanine',
 }
 
-#架橋用
+#Side-chain stapling
 CL_dict = {
     '=': 'Link'
 }
@@ -75,7 +75,7 @@ AA_dict = dict(
         CL_dict))
 )
 
-#L-体
+#SMILES representation of side chain of L-amino acids
 AA_joint = {
     'A': '[1*]C',
     'C': '[1*]CS',
