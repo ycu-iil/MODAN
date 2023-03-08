@@ -139,7 +139,7 @@ for peptide_feature in peptide_feature_list:
 #Select base sequence
 #Correspnd to only L-amino acids
 
-base_index = 8
+base_index = config['base_index']
 input_aa_list = peptide_feature_list[base_index]
 new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
 
@@ -156,7 +156,7 @@ for i in range(len(smiles_list)):
 #Calculation of Fingerprint, descriptor
 descriptor_dimension = 1024
 radial = 4
-fp_proc_n = 4
+fp_proc_n = config['fp_proc_n']
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
   MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
@@ -415,7 +415,7 @@ pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(config['NAA_index_list']))
 NNAA_index_list = config['NNAA_index_list']
-mutatable_AA_index_list = config['NNAA_index_list']
+mutatable_AA_index_list = config['mutatable_AA_index_list']
 linker_index_list = config['linker_index_list']
 result_type = config['result_type']
 
