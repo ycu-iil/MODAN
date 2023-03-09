@@ -21,7 +21,6 @@ def calc_feature_skip_connection(smi, peptide_feature, skip, feature, descriptor
  
     vertical_feature_list = []
     for mol in vertical_list:
-        #print(Chem.MolToSmiles(mol))
         if feature == 'Morgan_r2':
             vertical_feature_list.append(AllChem.GetMorganFingerprintAsBitVect(mol, 2, descriptor_dimension))
         elif feature == 'Morgan_r4':
@@ -32,17 +31,13 @@ def calc_feature_skip_connection(smi, peptide_feature, skip, feature, descriptor
             vertical_feature_list.append(calc_MorganCount(mol, 2, descriptor_dimension))
         elif feature == 'Morgan_r4_count':
             vertical_feature_list.append(calc_MorganCount(mol, 4, descriptor_dimension))
-    #print(vertical_feature_list)
     vertical_feature = np.mean(vertical_feature_list, axis = 0)
     return vertical_feature
 
 
 def calc_mordred_descriptor(mol_list):
-    #mordred
     calc = Calculator(descriptors, ignore_3D = True)
     mordred_df = calc.pandas(mol_list)
-
-    #modredののerrorをNaNで置き換え
     df_descriptors = mordred_df.astype(str)
     masks = df_descriptors.apply(lambda d: d.str.contains('[a-zA-Z]' ,na=False))
     df_descriptors = df_descriptors[~masks]
