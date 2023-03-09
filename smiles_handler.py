@@ -82,29 +82,6 @@ def calc_graph_connect(smi, peptide_feature, skip = 4, base_atom = 'P'):
     x = Chem.RemoveHs(mol)
     return Chem.MolToSmiles(x)
 
-def calc_graph_connect_S(smi, peptide_feature, skip = 4):
-    pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
-    mol = Chem.MolFromSmiles(smi)
-    mol = Chem.AddHs(mol)
-    Chem.SanitizeMol(mol)
-    pc_pattern = 'NC(=O)S'*pep_len
-    matches = mol.GetSubstructMatches(Chem.MolFromSmiles(pc_pattern))[0]
-    def get_HbondIdx(mol, p_index):
-        for bond in mol.GetAtomWithIdx(matches[p_index]).GetBonds():
-            if bond.GetEndAtom().GetSymbol() == 'H':
-                return mol.GetBondBetweenAtoms(matches[p_index],bond.GetEndAtom().GetIdx()).GetIdx()
-
-    for i in range(pep_len - skip):
-        matches = mol.GetSubstructMatches(Chem.MolFromSmiles(pc_pattern))[0]
-        bs = [get_HbondIdx(mol, i*4+3), get_HbondIdx(mol,  i*4+ 3 + skip*4)]
-        fragments_mol = Chem.FragmentOnBonds(mol,bs,addDummies=True,dummyLabels=[(1,1), (2,2)])
-        fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-        reaction_pattern = "([*1]-[S:1].[S:2]-[*2])>>[S:1]-[S:2]"
-        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-        mol = rxn.RunReactants([fragments[0]])[0][0]
-    x = Chem.RemoveHs(mol)
-    return Chem.MolToSmiles(x)
-
 
 def calc_smiles_woMC(smi, peptide_feature, base_atom = 'P'):
     pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
