@@ -11,7 +11,7 @@ def get_EI_list(train_Y, pred_y, sigma2_pred):
 
     return ei
 
-def calc_EI_overfmax(fmean, fcov, fmax): #fmaxに基準値を入れる, fmaxに対する改善値の期待値を測る指標であることに注意.
+def calc_EI_overfmax(fmean, fcov, fmax):
     fstd = np.sqrt(fcov)
 
     temp1 = fmean - fmax
@@ -19,14 +19,14 @@ def calc_EI_overfmax(fmean, fcov, fmax): #fmaxに基準値を入れる, fmaxに�
     score = temp1 * stats.norm.cdf(temp2) + fstd * stats.norm.pdf(temp2)
     return score
 
-def calc_PI_overfmax(fmean, fcov, fmax): #fmaxに基準値を入れる, fmaxを上回る確率であることに注意.
+def calc_PI_overfmax(fmean, fcov, fmax):
     fstd = np.sqrt(fcov)
 
     temp = (fmean - fmax) / fstd
     score = stats.norm.cdf(temp)
     return score
 
-def calc_PI_underfmin(fmean, fcov, fmin): #fminに基準値を入れる, fminを下回る確率であることに注意.
+def calc_PI_underfmin(fmean, fcov, fmin):
     fstd = np.sqrt(fcov)
 
     temp = (fmin - fmean) / fstd
