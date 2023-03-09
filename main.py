@@ -26,7 +26,7 @@ from acquisition_function import calc_PI_overfmax, calc_PI_underfmin
 from feature_generator import calc_MorganCount, calc_mordred_descriptor
 import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
-from smiles_handler import calc_smiles_skip_connection, replaceX_smiles, calc_smiles_woMC, calc_graph_connect
+from smiles_handler import calc_smiles_skip_connection, replaceX_smiles, calc_graph_connect
 
 with open('./config/setting.yaml') as file:
     config = yaml.safe_load(file.read())
@@ -143,10 +143,6 @@ base_index = config['base_index']
 input_aa_list = peptide_feature_list[base_index]
 new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
 
-smiles_woMC_list = []
-for i in range(len(smiles_list)):
-    seq_smi = calc_smiles_woMC(smiles_list[i], peptide_feature_list[i])
-    smiles_woMC_list.append(seq_smi)
 
 smiles_repP_list = []
 for i in range(len(smiles_list)):
