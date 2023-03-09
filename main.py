@@ -26,7 +26,7 @@ from acquisition_function import calc_PI_overfmax, calc_PI_underfmin
 from feature_generator import calc_MorganCount, calc_mordred_descriptor
 import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
-from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect
+from smiles_handler import calc_smiles_skip_connection, replaceX_smiles, calc_smiles_woMC, calc_graph_connect
 
 with open('./config/setting.yaml') as file:
     config = yaml.safe_load(file.read())
@@ -150,7 +150,7 @@ for i in range(len(smiles_list)):
 
 smiles_repP_list = []
 for i in range(len(smiles_list)):
-    seq_smi = replaceP_smiles(smiles_list[i], peptide_feature_list[i])
+    seq_smi = replaceX_smiles(smiles_list[i], peptide_feature_list[i], config['base_atom'])
     smiles_repP_list.append(seq_smi)
 
 #Calculation of Fingerprint, descriptor
@@ -487,7 +487,7 @@ for i, pep in enumerate(new_peptide_smi_list1):
 
 new_smiles_repP_list = []
 for i in range(len(new_peptide_smi_list)):
-    seq_smi = replaceP_smiles(new_peptide_smi_list[i], new_peptide_feature_list[i])
+    seq_smi = replaceX_smiles(new_peptide_smi_list[i], new_peptide_feature_list[i], config['base_atom'])
     new_smiles_repP_list.append(seq_smi)
 
 mol_list = new_peptide_mol_list
