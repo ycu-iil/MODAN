@@ -62,12 +62,12 @@ def replaceX_smiles(smi, peptide_feature, base_atom = 'P'):
     x = rxn.RunReactants([mol])[0]
     return Chem.MolToSmiles(x[0])
 
-def calc_graph_connect(smi, peptide_feature, skip = 4):
+def calc_graph_connect(smi, peptide_feature, skip = 4, base_atom = 'P'):
     pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
     mol = Chem.MolFromSmiles(smi)
     mol = Chem.AddHs(mol)
     Chem.SanitizeMol(mol)
-    pc_pattern = 'NC(=O)P'*pep_len
+    pc_pattern = ('NC(=O)'+base_atom)*pep_len
     matches = mol.GetSubstructMatches(Chem.MolFromSmiles(pc_pattern))[0]
 
   
@@ -76,7 +76,7 @@ def calc_graph_connect(smi, peptide_feature, skip = 4):
         bs = [get_HbondIdx(mol, i*4+3, matches), get_HbondIdx(mol,  i*4+ 3 + skip*4, matches)]
         fragments_mol = Chem.FragmentOnBonds(mol,bs,addDummies=True,dummyLabels=[(1,1), (2,2)])
         fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
-        reaction_pattern = "([*1]-[P:1].[P:2]-[*2])>>[P:1]-[P:2]"
+        reaction_pattern = "([*1]-["+base_atom+":1].["+base_atom+":2]-[*2])>>["+base_atom+":1]-[P:2]"
         rxn = AllChem.ReactionFromSmarts(reaction_pattern)
         mol = rxn.RunReactants([fragments[0]])[0][0]
     x = Chem.RemoveHs(mol)
