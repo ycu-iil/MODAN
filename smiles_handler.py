@@ -72,7 +72,7 @@ def replaceP_smiles(smi, peptide_feature, base_atom = 'P'):
     mc_pattern, pc_pattern = '', ''
     for i in range(pep_len):
         mc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])[C:'+str(i*4+4)+']'
-        pc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])[P:'+str(i*4+4)+']([H])([H])'
+        pc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])['+base_atom+':'+str(i*4+4)+']([H])([H])'
 
     reaction_pattern = mc_pattern + '>>' + pc_pattern
     rxn = AllChem.ReactionFromSmarts(reaction_pattern)
@@ -80,25 +80,6 @@ def replaceP_smiles(smi, peptide_feature, base_atom = 'P'):
     #print(x)
     #print(Chem.MolToSmiles(x[0]))
     return Chem.MolToSmiles(x[0])
-
-def replaceS_smiles(smi, peptide_feature):
-    pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
-    mol = Chem.MolFromSmiles(smi)
-    tmp = Chem.MolFromSmiles('NC(=O)C'*(pep_len))
-  
-    #print('[N:1][C:2](=[O:3])[C:4] >> [N:1][C:2](=[O:3])[P:4]')
-    mc_pattern, pc_pattern = '', ''
-    for i in range(pep_len):
-        mc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])[C:'+str(i*4+4)+']'
-        pc_pattern += '[N:'+str(i*4+1)+'][C:'+str(i*4+2)+'](=[O:'+str(i*4+3)+'])[S:'+str(i*4+4)+']([H])([H])'
-
-    reaction_pattern = mc_pattern + '>>' + pc_pattern
-    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-    x = rxn.RunReactants([mol])[0]
-    #print(x)
-    #print(Chem.MolToSmiles(x[0]))
-    return Chem.MolToSmiles(x[0])
-
 
 def calc_graph_connect(smi, peptide_feature, skip = 4):
     pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
@@ -138,13 +119,10 @@ def calc_graph_connect_S(smi, peptide_feature, skip = 4):
     mol = Chem.AddHs(mol)
     Chem.SanitizeMol(mol)
     #print('H', Chem.MolToSmiles(mol))
-    pc_pattern = 'NC(=O)S'*pep_len
+    pc_pattern = 'NC(=O)S'*pep_lens
     #print(pc_pattern)
     matches = mol.GetSubstructMatches(Chem.MolFromSmiles(pc_pattern))[0]
     #print(len(matches), pep_len, matches)
-
-  
-
     def get_HbondIdx(mol, p_index):
         for bond in mol.GetAtomWithIdx(matches[p_index]).GetBonds():
             if bond.GetEndAtom().GetSymbol() == 'H':
