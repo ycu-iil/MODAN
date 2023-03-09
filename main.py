@@ -16,8 +16,7 @@ import shap
 import yaml
 
 from rdkit import Chem
-from rdkit.Chem import AllChem, Draw, rdCoordGen
-from rdkit.Chem.Pharm2D import Gobbi_Pharm2D, Generate
+from rdkit.Chem import AllChem
 from sklearn import preprocessing 
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.metrics import r2_score, mean_squared_error
@@ -27,7 +26,7 @@ from acquisition_function import calc_PI_overfmax, calc_PI_underfmin
 from feature_generator import calc_MorganCount, calc_mordred_descriptor
 import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
-from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect,replaceS_smiles
+from smiles_handler import calc_smiles_skip_connection, replaceP_smiles, calc_smiles_woMC, calc_graph_connect
 
 with open('./config/setting.yaml') as file:
     config = yaml.safe_load(file.read())
@@ -55,12 +54,13 @@ def smi2repP_skip(smi, peptide_feature, skip = 7):
     return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
 data = pd.read_excel(config['data'])
-data_num = config['data_num'] 
+data_num = len([x for x in data['修正ペプチド配列'] if pd.isnull(x) == False])
 peptide_list = data['修正ペプチド配列'][:data_num]
 smiles_list = data['SMILES'][:data_num]
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 AA_dict = metadata.AA_dict
 AA_joint = metadata.AA_joint
+AA_dict.update(config['AA_dict_update'])
 AA_keys = list(AA_dict.keys())
 
 link_index_list = []
