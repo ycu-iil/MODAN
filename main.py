@@ -26,7 +26,7 @@ from acquisition_function import calc_PI_overfmax, calc_PI_underfmin
 from feature_generator import calc_MorganCount
 import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
-from smiles_handler import calc_smiles_skip_connection, replaceX_smiles, calc_graph_connect
+from smiles_handler import replaceX_smiles, calc_graph_connect
 
 with open('./config/setting.yaml') as file:
     config = yaml.safe_load(file.read())
