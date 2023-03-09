@@ -222,10 +222,7 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     plt.title(target_name+' Log10='+str(value_log))
     plt.xlabel(target_name)
     plt.ylabel('frequency')
-    if target_name == 'Δ[θ] ([θ]222/[θ]208)':
-        plt.savefig('./result/helix-like_dist_log'+str(value_log)+'.png', dpi = 300)
-    else:
-        plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
+    plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
     plt.show()
 
     if smiles_type == 'original':
@@ -342,22 +339,16 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     else:
         plt.xlabel('Experimental value')
         plt.ylabel('Predicted value')
-    if target_name == 'Δ[θ] ([θ]222/[θ]208)':
-        plt.savefig('./result/helix-like_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
-    else:
-        plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
+    plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
     plt.show()
     plt.clf()
 
 
 #Validate predicition accuracy
 #model list: 'RF', 'lightgbm'
-#feature list: 'Morgan_r2', 'Morgan_r4','Morgan_r2_count', 'Morgan_r4_count', 'MACCS', 'Morgan_r2_MACCS', 'one-hot'
+#feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
 #fold_n: fold num of cross-validation
 
-#target_index
-#5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 9: 'Proteus', 10: 'Staphylococcus epidermidis', 
-#11: 'Proteus vulgaris', 12: 'Salmonella enterica subsp.', 13: 'Klebsiella pneumoniae', 14: 'MDRP', 15: 'Hemolysis', 16: 'Δ[θ] ([θ]222/[θ]208)'
 
 target_index = config['target_index']
 value_log = config['value_log']
@@ -391,10 +382,7 @@ plt.legend()
 plt.title(target_name+' Log10='+str(value_log))
 plt.xlabel(target_name)
 plt.ylabel('frequency')
-if target_name == 'Δ[θ] ([θ]222/[θ]208)':
-    plt.savefig('./result/helix-like_dist_log'+str(value_log)+'.png', dpi = 300)
-else:
-    plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
+plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
 plt.show()
 
 #Recommend with BO
@@ -517,8 +505,8 @@ with multiprocessing.Pool(processes = proc_n) as pool:
 repP_end_time = time.time()
 
 ##target_index
-#5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 9: 'Proteus', 10: 'Staphylococcus epidermidis', 
-#11: 'Proteus vulgaris', 12: 'Salmonella enterica subsp.', 13: 'Klebsiella pneumoniae', 14: 'MDRP', 15: 'Hemolysis', 16: 'Δ[θ] ([θ]222/[θ]208)'
+#5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 10: 'Staphylococcus epidermidis', 
+#14: 'MDRP', 15: 'Hemolysis'
 
 target_list = config['target_list']
 threshold_list = config['threshold_list']
