@@ -245,7 +245,7 @@ def make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list):
     return Chem.MolToSmiles(joint_MC_mol), joint_MC_mol
 
 
-def generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint):
+def generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_joint):
     pep_len = len([v for v in  peptide_feature_list[base_index][4:] if v >= 0])
     base_smiles = smiles_list[base_index]
     base_mol = Chem.MolFromSmiles(base_smiles)
@@ -253,7 +253,7 @@ def generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smile
     MC_mol = Chem.MolFromSmiles('NCC(=O)'*(pep_len))
     matches = base_mol.GetSubstructMatches(MC_mol)[0]
     joint_MC_smi, joint_MC_mol = make_joint_MC(base_mol, MC_mol, pep_len)
-    AA_keys = list(AA_dict.keys())
+    AA_keys = list(AA_joint.keys())
     peptide_smi, peptide_mol = make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list)
     return peptide_smi, peptide_mol
 
