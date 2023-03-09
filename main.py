@@ -60,7 +60,8 @@ smiles_list = data['SMILES'][:data_num]
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 AA_dict = metadata.AA_dict
 AA_joint = metadata.AA_joint
-AA_dict.update(config['AA_dict_update'])
+#AA_dict.update(config['AA_dict_update'])
+#AA_joint.update(config['AA_joint_update'])
 AA_keys = list(AA_dict.keys())
 
 link_index_list = []
@@ -88,7 +89,7 @@ for peptide in peptide_list:
     nt_index = nt_list.index(nt)
 
     tmp_list = []
-    for i, AA_key in enumerate(AA_dict.keys()):
+    for i, AA_key in enumerate(AA_keys):
         res = re.finditer(AA_key, aa_list)
         for s in res:
             tmp_list.append([s.span()[0], i])
@@ -119,7 +120,6 @@ for peptide in peptide_list:
 for i, pf in enumerate(peptide_feature_list):
     seq = peptide_feature2AA_seq(pf, AA_keys, ct_list, nt_list)
 
-AA_keys = list(AA_dict.keys())
 
 for i, pf in enumerate(peptide_feature_list):
     aa_seq = ''
@@ -410,7 +410,6 @@ mutation_num = config['mutation_num']
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
 NAA_index_list = list(range(config['NAA_index_list']))
-NNAA_index_list = config['NNAA_index_list']
 mutatable_AA_index_list = config['mutatable_AA_index_list']
 linker_index_list = config['linker_index_list']
 result_type = config['result_type']
