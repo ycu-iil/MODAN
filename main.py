@@ -356,9 +356,10 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 #fold_n: fold num of cross-validation
 
 #indexに問題あり
-target_index = [i for i, name in enumerate(data.columns) if name in config['target_list']]
+#target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
+target_index = 5
 value_log = config['value_log']
-target_name = config['target_list']
+target_name = data.keys()[target_index]
 exp_list = data[target_name][:data_num]
 
 #Correction of mumerical data
@@ -510,9 +511,6 @@ with multiprocessing.Pool(processes = proc_n) as pool:
 
 repP_end_time = time.time()
 
-##target_index
-#5: 'NZRC 3972', 6: 'DH5a', 7: 'Pseudomonas aeruginosa', 8: 'Staphylococcus aureus', 10: 'Staphylococcus epidermidis', 
-#14: 'MDRP', 15: 'Hemolysis'
 
 target_list = config['target_list']
 threshold_list = config['threshold_list']
@@ -522,6 +520,7 @@ feature_list = config['feature_list']
 value_log = config['value_log']
 standardize = config['standardize']
 visualize = config['visualize']
+target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
 
 pred_y_list_list = []
 pred_cov_list_list = []
@@ -529,7 +528,7 @@ pi_list_list = []
 
 for target_i in range(len(target_list)):
 
-    target_index = target_list[target_i]
+    target_index = target_index_list[target_i]
     target_name = data.keys()[target_index]
     smiles_type = smiles_type_list[target_i]
     feature = feature_list[target_i]
@@ -672,7 +671,7 @@ if result_type == "NNAA":
     for top_index in orn_ordered_total_PI_score_index[:3]:
         print( 'orn','total_pi_score', round(orn_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[orn_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[orn_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
         for target_i in range(len(target_list)):
-            target_index = target_list[target_i]
+            target_index = target_index_list[target_i]
             target_name = data.keys()[target_index]
             print('  ', target_name, round(10**pred_y_list_list[target_i][orn_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][orn_index_list[top_index]]**0.5,3), ')' )
 
@@ -680,7 +679,7 @@ if result_type == "NNAA":
     for top_index in dab_ordered_total_PI_score_index[:3]:
         print( 'dab','total_pi_score', round(dab_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[dab_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[dab_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
         for target_i in range(len(target_list)):
-            target_index = target_list[target_i]
+            target_index = target_index_list[target_i]
             target_name = data.keys()[target_index]
             print('  ', target_name, round(10**pred_y_list_list[target_i][dab_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][dab_index_list[top_index]]**0.5,3), ')' )
     
@@ -688,7 +687,7 @@ if result_type == "NNAA":
     for top_index in ac5c_ordered_total_PI_score_index[:3]:
         print( 'ac5c','total_pi_score', round(ac5c_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[ac5c_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[ac5c_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
         for target_i in range(len(target_list)):
-            target_index = target_list[target_i]
+            target_index = target_index_list[target_i]
             target_name = data.keys()[target_index]
             print('  ', target_name, round(10**pred_y_list_list[target_i][ac5c_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][ac5c_index_list[top_index]]**0.5,3), ')' )
 
@@ -696,7 +695,7 @@ if result_type == "NNAA":
     for top_index in aib_ordered_total_PI_score_index[:3]:
         print( 'aib','total_pi_score', round(aib_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[aib_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[aib_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
         for target_i in range(len(target_list)):
-            target_index = target_list[target_i]
+            target_index = target_index_list[target_i]
             target_name = data.keys()[target_index]
             print('  ', target_name, round(10**pred_y_list_list[target_i][aib_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][aib_index_list[top_index]]**0.5,3), ')' )
 
@@ -704,7 +703,7 @@ if result_type == "NNAA":
     for top_index in aib_ordered_total_PI_score_index[:3]:
         print( 'ac6c','total_pi_score', round(ac6c_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[ac6c_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[ac6c_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
         for target_i in range(len(target_list)):
-            target_index = target_list[target_i]
+            target_index = target_index_list[target_i]
             target_name = data.keys()[target_index]
             print('  ', target_name, round(10**pred_y_list_list[target_i][ac6c_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][ac6c_index_list[top_index]]**0.5,3), ')' )
  
@@ -715,7 +714,7 @@ else:
         print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list))
         result_list = [peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list), round(total_pi_score_list[top_index],3)]
         for target_i in range(len(target_list)):
-            target_index = target_list[target_i]
+            target_index = target_index_list[target_i]
             target_name = data.keys()[target_index]
             print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3), '(', round(10**pred_cov_list_list[target_i][top_index]**0.5,3), ')' )
             result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3)) + " " + '(' + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) + ')')
