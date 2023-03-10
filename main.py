@@ -54,8 +54,8 @@ def smi2repP_skip(smi, peptide_feature, skip = 7):
     return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
 data = pd.read_excel(config['data'])
-data_num = len([x for x in data['修正ペプチド配列'] if pd.isnull(x) == False])
-peptide_list = data['修正ペプチド配列'][:data_num]
+data_num = len([x for x in data[config['sequence_column']] if pd.isnull(x) == False])
+peptide_list = data[config['sequence_column']][:data_num]
 smiles_list = data['SMILES'][:data_num]
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 AA_dict = metadata.AA_dict
@@ -103,12 +103,15 @@ for peptide in peptide_list:
                     continue
         new_tmp_list.append(tmp)
     tmp_list = new_tmp_list
-
+#ここに問題あり
     AA_index_list = []
     link_list = []
     for pair in tmp_list:
         if pair[1] in link_index_list:
-            link_list.append(len(AA_index_list)+1)
+            #if pair[1] == AA_keys.index('='):
+            #    link_list.append(len(AA_index_list))
+            #else:
+                link_list.append(len(AA_index_list)+1)
         if pair[1] not in [AA_keys.index('=')]:
             AA_index_list.append(pair[1])
 
@@ -117,6 +120,8 @@ for peptide in peptide_list:
     peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
     peptide_feature_list.append(peptide_feature)
 
+#ここ消していい?
+"""
 for i, pf in enumerate(peptide_feature_list):
     seq = peptide_feature2AA_seq(pf, AA_keys, ct_list, nt_list)
 
@@ -129,6 +134,7 @@ for i, pf in enumerate(peptide_feature_list):
         aa_seq += AA_keys[k]
   
     seq = ct_list[pf[0]]+'-'+aa_seq+'-'+nt_list[pf[1]]
+"""
 
 max_len = np.max([len(v) for v in peptide_feature_list])
 for peptide_feature in peptide_feature_list:
@@ -349,10 +355,10 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 #feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
 #fold_n: fold num of cross-validation
 
-
-target_index = config['target_index']
+#indexに問題あり
+target_index = [i for i, name in enumerate(data.columns) if name in config['target_list']]
 value_log = config['value_log']
-target_name = data.keys()[target_index]
+target_name = config['target_list']
 exp_list = data[target_name][:data_num]
 
 #Correction of mumerical data
