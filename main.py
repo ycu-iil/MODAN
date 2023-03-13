@@ -60,8 +60,8 @@ smiles_list = data['SMILES'][:data_num]
 mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
 AA_dict = metadata.AA_dict
 AA_joint = metadata.AA_joint
-#AA_dict.update(config['AA_dict_update'])
-#AA_joint.update(config['AA_joint_update'])
+AA_dict.update(config['AA_dict_update'])
+AA_joint.update(config['AA_joint_update'])
 AA_keys = list(AA_dict.keys())
 
 link_index_list = []
@@ -120,21 +120,6 @@ for peptide in peptide_list:
     peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
     peptide_feature_list.append(peptide_feature)
 
-#ここ消していい?
-"""
-for i, pf in enumerate(peptide_feature_list):
-    seq = peptide_feature2AA_seq(pf, AA_keys, ct_list, nt_list)
-
-
-for i, pf in enumerate(peptide_feature_list):
-    aa_seq = ''
-    for j, k in enumerate(pf[4:]):
-        if j in pf[2:4]:
-            aa_seq += '='
-        aa_seq += AA_keys[k]
-  
-    seq = ct_list[pf[0]]+'-'+aa_seq+'-'+nt_list[pf[1]]
-"""
 
 max_len = np.max([len(v) for v in peptide_feature_list])
 for peptide_feature in peptide_feature_list:
