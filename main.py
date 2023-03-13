@@ -330,9 +330,8 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 #feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
 #fold_n: fold num of cross-validation
 
-target_index = config['target_index']
 value_log = config['value_log']
-target_name = data.keys()[target_index]
+target_name = config['target_name']
 exp_list = data[target_name][:data_num]
 
 #Correction of mumerical data
