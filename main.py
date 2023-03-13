@@ -156,8 +156,7 @@ for i in range(len(smiles_list)):
     smiles_repP_list.append(seq_smi)
 
 #Calculation of Fingerprint, descriptor
-descriptor_dimension = 1024
-radial = 4
+descriptor_dimension = config['Morgan_descriptor_dimension']
 fp_proc_n = config['fp_proc_n']
 
 with multiprocessing.Pool(processes = fp_proc_n) as pool:
@@ -355,8 +354,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 #feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
 #fold_n: fold num of cross-validation
 
-#indexに問題あり
-#target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
 target_index = 5
 value_log = config['value_log']
 target_name = data.keys()[target_index]
@@ -404,7 +401,6 @@ fp_proc_n = config['fp_proc_n']
 mutation_num = config['mutation_num']
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
-NAA_index_list = list(range(config['NAA_index_list']))
 mutatable_AA_index_list = config['mutatable_AA_index_list']
 linker_index_list = config['linker_index_list']
 result_type = config['result_type']
