@@ -401,7 +401,7 @@ fp_proc_n = config['fp_proc_n']
 mutation_num = config['mutation_num']
 pep_len = len([v for v in input_aa_list[4:] if v >= 0])
 
-mutatable_AA_index_list = config['mutatable_AA_index_list']
+mutatable_AA_index_list = [AA_keys.index(i) for i in config['mutatable_AA_list']]
 linker_index_list = config['linker_index_list']
 result_type = config['result_type']
 
