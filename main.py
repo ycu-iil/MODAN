@@ -483,8 +483,8 @@ with multiprocessing.Pool(processes = proc_n) as pool:
 repP_end_time = time.time()
 
 
-target_list = config['target_list']
-threshold_list = list(config['threshold_list'].values())
+target_list = list(config['target_list'].keys())
+threshold_list = list(config['target_list'].values())
 smiles_type_list = config['smiles_type_list']
 model = config['model']
 feature_list = config['feature_list']
