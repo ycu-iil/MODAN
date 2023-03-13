@@ -126,15 +126,6 @@ for peptide_feature in peptide_feature_list:
     pad_len = max_len - len(peptide_feature)
     peptide_feature += [-2] * pad_len
 
-#Generate new peptides
-#Select base sequence
-#Correspnd to only L-amino acids
-
-base_index = config['base_index']
-input_aa_list = peptide_feature_list[base_index]
-new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)
-
-
 smiles_repP_list = []
 for i in range(len(smiles_list)):
     seq_smi = replaceX_smiles(smiles_list[i], peptide_feature_list[i], config['base_atom'])
