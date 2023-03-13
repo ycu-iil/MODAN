@@ -103,14 +103,14 @@ for peptide in peptide_list:
                     continue
         new_tmp_list.append(tmp)
     tmp_list = new_tmp_list
-#ここに問題あり
+
     AA_index_list = []
     link_list = []
     for pair in tmp_list:
         if pair[1] in link_index_list:
-            #if pair[1] == AA_keys.index('='):
-            #    link_list.append(len(AA_index_list))
-            #else:
+            if pair[1] == AA_keys.index('='):
+                link_list.append(len(AA_index_list))
+            else:
                 link_list.append(len(AA_index_list)+1)
         if pair[1] not in [AA_keys.index('=')]:
             AA_index_list.append(pair[1])
