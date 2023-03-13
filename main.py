@@ -484,7 +484,8 @@ repP_end_time = time.time()
 
 
 target_list = list(config['target_list'].keys())
-threshold_list = list(config['target_list'].values())
+target_values_list = list(config['target_list'].values())
+threshold_list = [i[:2] for i in target_values_list]
 smiles_type_list = config['smiles_type_list']
 model = config['model']
 feature_list = config['feature_list']
