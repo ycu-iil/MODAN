@@ -330,40 +330,6 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
 #feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
 #fold_n: fold num of cross-validation
 
-value_log = config['value_log']
-target_name = config['target_name']
-exp_list = data[target_name][:data_num]
-
-#Correction of mumerical data
-filled_index_list = []
-exp_modified_list = []
-for i, v in enumerate(exp_list):
-    if str(v)[0] == '>':
-        exp_modified_list.append([float(str(v)[1:])*2, peptide_feature_list[i][2]])
-        filled_index_list.append(i)
-    elif str(v)[0] == '<':
-        exp_modified_list.append([float(str(v)[1:])/2, peptide_feature_list[i][2]])
-        filled_index_list.append(i)
-    else:
-        if not math.isnan(v):
-            filled_index_list.append(i)
-        exp_modified_list.append([v, peptide_feature_list[i][2]])
-
-if value_log == True:
-    exp_modified_list = np.log10(exp_modified_list)
-max = np.max(np.array(exp_modified_list)[filled_index_list][:,0])
-min = np.min(np.array(exp_modified_list)[filled_index_list][:,0])
-
-plt.hist([v[0] for v in np.array(exp_modified_list)[filled_index_list] if v[1] < 0], label = 'wo. linker', alpha = 0.6, bins = np.arange(min, max+0.01, (max-min)/20))
-plt.hist([v[0] for v in np.array(exp_modified_list)[filled_index_list] if v[1] > 0], label = 'w. linker', alpha = 0.6, bins = np.arange(min, max+0.01, (max-min)/20))
-
-plt.legend()
-plt.title(target_name+' Log10='+str(value_log))
-plt.xlabel(target_name)
-plt.ylabel('frequency')
-plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
-plt.show()
-
 #Recommend with BO
 #Select base sequence
 #Correspnd to only L-amino acids
