@@ -611,7 +611,6 @@ with open('result/pred_y_list_list.pkl', mode='wb') as f:
 with open('result/pred_cov_list_list.pkl', mode='wb') as f:
     pickle.dump(pred_cov_list_list, f)   
     
-   
 if result_type == "Each_AA":
     for i, AA in enumerate(mutatable_AA_index_list):
         each_aa_total_pi_score_list, each_aa_index_list = [], []
