@@ -625,7 +625,7 @@ if result_type == "Each_AA":
         each_aa_ordered_total_PI_score_index = np.argsort(each_aa_total_pi_score_list)[::-1]
         for top_index in each_aa_ordered_total_PI_score_index[:display_number]:
             print( AA_dict[mutatable_AA_list[i]],'total_pi_score', round(each_aa_total_pi_score_list[top_index], 3), 'mutation_info', cand_data_list[each_aa_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[each_aa_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
-            result_list = [peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list), round(each_aa_total_pi_score_list[top_index],3)]
+            result_list = [AA_dict[mutatable_AA_list[i]],peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list), round(each_aa_total_pi_score_list[top_index],3)]
             for target_i in range(len(target_list)):
                 target_index = target_index_list[target_i]
                 target_name = data.keys()[target_index]
@@ -633,7 +633,7 @@ if result_type == "Each_AA":
                 result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3)) + " " + '(' + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) + ')')
             Total_result_list.append(result_list)
     df = pd.DataFrame(Total_result_list)
-    df.columns = ["Sequence","Score"] + target_list
+    df.columns = ["Amino_acid_name","Sequence","Score"] + target_list
     file_name = "top" + display_number + "_each_aa.csv"
     df.to_csv("./result/" + file_name, encoding="shift_jis")
 
