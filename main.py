@@ -634,7 +634,7 @@ if result_type == "Each_AA":
             Total_result_list.append(result_list)
     df = pd.DataFrame(Total_result_list)
     df.columns = ["Amino_acid_name","Sequence","Score"] + target_list
-    file_name = "top" + display_number + "_each_aa.csv"
+    file_name = "top" + str(display_number) + "_each_aa.csv"
     df.to_csv("./result/" + file_name, encoding="shift_jis")
 
 
@@ -652,5 +652,5 @@ else:
         Total_result_list.append(result_list)
     df = pd.DataFrame(Total_result_list)
     df.columns = ["Sequence","Score"] + target_list
-    file_name = "top" + display_number + ".csv"
+    file_name = "top" + str(display_number) + ".csv"
     df.to_csv("./result/" + file_name, encoding="shift_jis")
