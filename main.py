@@ -177,6 +177,10 @@ def GP_predict(train_X, test_X, train_y, test_y):
 
     return [train_fmean, train_fcov], [test_fmean, test_fcov] 
 
+#Validate predicition accuracy
+#model list: 'RF', 'lightgbm'
+#feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
+#fold_n: fold num of cross-validation
 
 def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log = False, standardize = False):
 
@@ -323,12 +327,49 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, val
     plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
     plt.show()
     plt.clf()
+    return r
 
 
-#Validate predicition accuracy
-#model list: 'RF', 'lightgbm'
-#feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
-#fold_n: fold num of cross-validation
+target_list = list(config['target_list'].keys())
+target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
+smi_list = ["original", "smiles_repP_skip7"]
+fingerprint_list = ['MACCS', 'Morgan_r2_count', 'Morgan_r4_count']
+model = config['model']
+fold_n = 10
+value_log = config['value_log']
+standardize = config['standardize']
+smiles_type_list_new = []
+fingerprint_type_list = []
+r_list_list = []
+for i in target_index_list: 
+    r_list = []
+    for s in smi_list:
+        for f in fingerprint_list:
+            r = calc_prediction_model(s, model, f, fold_n, i, value_log = True, standardize = False)
+            r_list.append(r)
+    r_list_list.append(r_list)
+    max = 0
+    for k, each_r in enumerate(r_list):
+        if each_r >= max:
+            max = each_r
+            max_index = k
+    if max_index <= 2:
+        smiles_type_list_new.append("original")
+        if max_index == 0:
+            fingerprint_type_list.append("MACCS")
+        elif max_index == 1:
+            fingerprint_type_list.append("Morgan_r2_count")
+        else:
+            fingerprint_type_list.append("Morgan_r4_coount")
+    else:
+        smiles_type_list_new.append("smiles_repP_skip7")
+        if max_index == 3:
+            fingerprint_type_list.append("MACCS")
+        elif max_index == 4:
+            fingerprint_type_list.append("Morgan_r2_count")
+        else:
+            fingerprint_type_list.append("Morgan_r4_coount") 
+
 
 #Recommend with BO
 #Select base sequence
@@ -449,11 +490,10 @@ with multiprocessing.Pool(processes = proc_n) as pool:
 repP_end_time = time.time()
 
 
-target_list = list(config['target_list'].keys())
+
 target_values_list = list(config['target_list'].values())
 threshold_list = [i[:2] for i in target_values_list]
 smiles_type_list = [i[2] for i in target_values_list]
-model = config['model']
 feature_list = [i[3] for i in target_values_list]
 value_log = config['value_log']
 standardize = config['standardize']
@@ -598,3 +638,7 @@ else:
     df.columns = ["Sequence","Score"] + target_list
     file_name = "top" + str(display_number) + ".csv"
     df.to_csv("./result/" + file_name, encoding="shift_jis")
+
+print(r_list)
+print(smiles_type_list_new)
+print(fingerprint_type_list)
