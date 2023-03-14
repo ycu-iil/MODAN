@@ -486,9 +486,9 @@ repP_end_time = time.time()
 target_list = list(config['target_list'].keys())
 target_values_list = list(config['target_list'].values())
 threshold_list = [i[:2] for i in target_values_list]
-smiles_type_list = [i[3] for i in target_values_list]
+smiles_type_list = [i[2] for i in target_values_list]
 model = config['model']
-feature_list = [i[4] for i in target_values_list]
+feature_list = [i[3] for i in target_values_list]
 value_log = config['value_log']
 standardize = config['standardize']
 visualize = config['visualize']
@@ -692,5 +692,5 @@ else:
             result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3)) + " " + '(' + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) + ')')
         Total_result_list.append(result_list)
     df = pd.DataFrame(Total_result_list)
-    df.columns = ["Sequence","Score","NZRC 3972","DH5α","Pseudomonas aeruginosa","Staphylococcus aureus","Staphylococcus epidermidis","MDRP","Hemolysis"]
+    df.columns = ["Sequence","Score"] + target_list
     df.to_csv("./result/top10.csv", encoding="shift_jis")
