@@ -610,7 +610,9 @@ with open('result/pred_y_list_list.pkl', mode='wb') as f:
     pickle.dump(pred_y_list_list, f) 
 with open('result/pred_cov_list_list.pkl', mode='wb') as f:
     pickle.dump(pred_cov_list_list, f)   
-    
+
+display_number = config['display_number']
+
 if result_type == "Each_AA":
     for i, AA in enumerate(mutatable_AA_index_list):
         each_aa_total_pi_score_list, each_aa_index_list = [], []
@@ -620,8 +622,8 @@ if result_type == "Each_AA":
                 each_aa_index_list.append(k)
         
         each_aa_ordered_total_PI_score_index = np.argsort(each_aa_total_pi_score_list)[::-1]
-        for top_index in each_aa_ordered_total_PI_score_index[:3]:
-            print( AA_dict[mutatable_AA_list[i]],'total_pi_score', round(each_aa_total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[each_aa_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[each_aa_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
+        for top_index in each_aa_ordered_total_PI_score_index[:display_number]:
+            print( AA_dict[mutatable_AA_list[i]],'total_pi_score', round(each_aa_total_pi_score_list[top_index], 3), 'mutation_info', cand_data_list[each_aa_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[each_aa_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
             for target_i in range(len(target_list)):
                 target_index = target_index_list[target_i]
                 target_name = data.keys()[target_index]
@@ -630,7 +632,7 @@ if result_type == "Each_AA":
 else:
     ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
     Total_result_list = []
-    for top_index in ordered_total_PI_score_index[:10]:
+    for top_index in ordered_total_PI_score_index[:display_number]:
         print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list))
         result_list = [peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list), round(total_pi_score_list[top_index],3)]
         for target_i in range(len(target_list)):
