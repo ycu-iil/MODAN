@@ -618,7 +618,7 @@ if result_type == "Each_AA":
     for i, AA in enumerate(mutatable_AA_index_list):
         each_aa_total_pi_score_list, each_aa_index_list = [], []
         for k, pep in enumerate(new_peptide_feature_list):
-            if k in pep:
+            if AA in pep:
                 each_aa_total_pi_score_list.append(total_pi_score_list[k])
                 each_aa_index_list.append(k)
         
