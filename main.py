@@ -491,7 +491,6 @@ model = config['model']
 feature_list = [i[3] for i in target_values_list]
 value_log = config['value_log']
 standardize = config['standardize']
-visualize = config['visualize']
 target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
 
 pred_y_list_list = []
@@ -565,27 +564,6 @@ for target_i in range(len(target_list)):
     pred_cov_list_list.append(y_pred_cov)
     pi_list_list.append(pi_list)
 
-    if visualize:
-        B_cand_index = [i for i, data in enumerate(cand_data_list) if ((len(data[0][1]) == 1) and (AA_keys[data[0][2][0]] == 'B'))]
-        plt.errorbar(np.array(range(1, len(y_pred[B_cand_index]) + 1))-0.07, y_pred[B_cand_index], yerr = (y_pred_cov**0.5)[B_cand_index], fmt='o', label = 'Ac5c')
-
-        U_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 1 and AA_keys[data[0][2][0]] == 'U']
-        plt.errorbar(range(1, len(y_pred[U_cand_index]) + 1), y_pred[U_cand_index], yerr = (y_pred_cov**0.5)[U_cand_index], fmt='o', label = 'Aib')
-
-        Z_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 1 and AA_keys[data[0][2][0]] == 'Z']
-        plt.errorbar(np.array(range(1, len(y_pred[Z_cand_index]) + 1))+0.07, y_pred[Z_cand_index], yerr = (y_pred_cov**0.5)[Z_cand_index], fmt='o', label = 'Ac6c')
-
-        S5_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 2 and AA_keys[data[0][2][0]] == 'S5' and AA_keys[data[0][2][1]] == 'S5']
-        plt.errorbar(np.array(range(1, len(y_pred[S5_cand_index]) + 1))-0.07, y_pred[S5_cand_index], yerr = (y_pred_cov**0.5)[S5_cand_index], fmt='o', label = 'S5-S5')
-
-        R8_cand_index = [i for i, data in enumerate(cand_data_list) if len(data[0][1]) == 2 and AA_keys[data[0][2][0]] == 'R8']
-        plt.errorbar(np.array(range(1, len(y_pred[R8_cand_index]) + 1))-0.07, y_pred[R8_cand_index], yerr = (y_pred_cov**0.5)[R8_cand_index], fmt='o', label = 'R8-S5')
-
-        plt.legend()
-        plt.xlabel('mutation position')
-        plt.ylabel(target_name+' (log, predicted)')
-        plt.savefig('./result/bo_'+target_name+'_test.png', dpi = 300)
-        plt.show()
 
 total_pi_score_list = []
 for j in range(len(new_peptide_feature_list)):
