@@ -338,9 +338,10 @@ model = config['model']
 fold_n = 10
 value_log = config['value_log']
 standardize = config['standardize']
-smiles_type_list_new = []
-fingerprint_type_list = []
+smiles_type_list = []
+feature_list = []
 r_list_list = []
+
 for i in target_index_list: 
     r_list = []
     for s in smi_list:
@@ -354,21 +355,21 @@ for i in target_index_list:
             max = each_r
             max_index = k
     if max_index <= 2:
-        smiles_type_list_new.append("original")
+        smiles_type_list.append("original")
         if max_index == 0:
-            fingerprint_type_list.append("MACCS")
+            feature_list.append("MACCS")
         elif max_index == 1:
-            fingerprint_type_list.append("Morgan_r2_count")
+            feature_list.append("Morgan_r2_count")
         else:
-            fingerprint_type_list.append("Morgan_r4_coount")
+            feature_list.append("Morgan_r4_coount")
     else:
-        smiles_type_list_new.append("smiles_repP_skip7")
+        smiles_type_list.append("smiles_repP_skip7")
         if max_index == 3:
-            fingerprint_type_list.append("MACCS")
+            feature_list.append("MACCS")
         elif max_index == 4:
-            fingerprint_type_list.append("Morgan_r2_count")
+            feature_list.append("Morgan_r2_count")
         else:
-            fingerprint_type_list.append("Morgan_r4_coount") 
+            feature_list.append("Morgan_r4_coount") 
 
 
 #Recommend with BO
@@ -498,6 +499,10 @@ feature_list = [i[3] for i in target_values_list]
 value_log = config['value_log']
 standardize = config['standardize']
 target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
+smiles_select = config['smiles_select']
+fingerpint_select = config['fingerprint_select']
+if smiles_select == True:
+    
 
 pred_y_list_list = []
 pred_cov_list_list = []
@@ -638,7 +643,3 @@ else:
     df.columns = ["Sequence","Score"] + target_list
     file_name = "top" + str(display_number) + ".csv"
     df.to_csv("./result/" + file_name, encoding="shift_jis")
-
-print(r_list)
-print(smiles_type_list_new)
-print(fingerprint_type_list)
