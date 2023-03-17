@@ -31,7 +31,71 @@ from smiles_handler import replaceX_smiles, calc_graph_connect
 with open('./config/setting.yaml') as file:
     config = yaml.safe_load(file.read())
 
-def generate_peptide_from_mutation_info(input_aa_list, mutation_info):
+def generate_peptide_from_mutation_info(input_aa_list, mutation_info, base_index = config['base_index'], data_set = pd.read_excel(config['data'])):
+    data_num = len([x for x in data_set[config['sequence_column']] if pd.isnull(x) == False])
+    peptide_list = data_set[config['sequence_column']][:data_num]
+    smiles_list = data_set['SMILES'][:data_num]
+    AA_dict = metadata.AA_dict
+    AA_joint = metadata.AA_joint
+    AA_dict.update(config['AA_dict_update'])
+    AA_joint.update(config['AA_joint_update'])
+    AA_keys = list(AA_dict.keys())
+    link_index_list = []
+    for st in ['S5', 'R8', 's5', 'r8', '=']:
+        link_index_list.append(AA_keys.index(st))
+
+    SR_index_list = []
+    for st in ['S', 'R', 's', 'r']:
+        SR_index_list.append(AA_keys.index(st))
+
+    ct_list, nt_list = [], []
+    for peptide in peptide_list:
+        peptide = unicodedata.normalize("NFKD", peptide).strip()
+        ct,aa_list,nt = peptide.split('-')
+        ct_list.append(ct)
+        nt_list.append(nt)
+    ct_list = list(set(ct_list))
+    nt_list = list(set(nt_list))
+
+    peptide_feature_list = []
+    for peptide in peptide_list:
+        peptide = unicodedata.normalize("NFKD", peptide).strip()
+        ct,aa_list,nt = peptide.split('-')
+        ct_index = ct_list.index(ct)
+        nt_index = nt_list.index(nt)
+
+        tmp_list = []
+        for i, AA_key in enumerate(AA_keys):
+            res = re.finditer(AA_key, aa_list)
+            for s in res:
+                tmp_list.append([s.span()[0], i])
+        tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
+
+        new_tmp_list = []
+        for tmp in tmp_list:
+            if tmp[0]+1 < len(aa_list):
+                if tmp[1] in SR_index_list:
+                    if aa_list[tmp[0]+1] in ['5', '8']:
+                        continue
+            new_tmp_list.append(tmp)
+        tmp_list = new_tmp_list
+
+        AA_index_list = []
+        link_list = []
+        for pair in tmp_list:
+            if pair[1] in link_index_list:
+                if pair[1] == AA_keys.index('='):
+                    link_list.append(len(AA_index_list))
+                else:
+                    link_list.append(len(AA_index_list)+1)
+            if pair[1] not in [AA_keys.index('=')]:
+                AA_index_list.append(pair[1])
+
+        if len(link_list) == 0:
+            link_list = [-1, -1]
+        peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
+        peptide_feature_list.append(peptide_feature)
+
     input_aa_list[2:4] = mutation_info[0]
     b  = copy.copy(input_aa_list)
     c = []
@@ -79,10 +143,106 @@ def GP_predict(train_X, test_X, train_y, test_y):
 #feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
 #fold_n: fold num of cross-validation
 
-def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, value_log = False, standardize = False):
+def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, fp_proc_n = 4, descriptor_dimension = 1024, value_log = False, standardize = False, data_set = pd.read_excel(config['data'])):
 
-    target_name = data.keys()[target_index]
-    exp_list = data[target_name][:data_num]
+    data_num = len([x for x in data_set[config['sequence_column']] if pd.isnull(x) == False])
+    target_name = data_set.keys()[target_index]
+    exp_list = data_set[target_name][:data_num]
+    smiles_list = data_set['SMILES'][:data_num]
+    mol_list = [Chem.MolFromSmiles(smi) for smi in smiles_list]
+    peptide_list = data_set[config['sequence_column']][:data_num]
+    AA_dict = metadata.AA_dict
+    AA_joint = metadata.AA_joint
+    AA_dict.update(config['AA_dict_update'])
+    AA_joint.update(config['AA_joint_update'])
+    AA_keys = list(AA_dict.keys())
+    link_index_list = []
+    for st in ['S5', 'R8', 's5', 'r8', '=']:
+        link_index_list.append(AA_keys.index(st))
+
+    SR_index_list = []
+    for st in ['S', 'R', 's', 'r']:
+        SR_index_list.append(AA_keys.index(st))
+
+    ct_list, nt_list = [], []
+    for peptide in peptide_list:
+        peptide = unicodedata.normalize("NFKD", peptide).strip()
+        ct,aa_list,nt = peptide.split('-')
+        ct_list.append(ct)
+        nt_list.append(nt)
+    ct_list = list(set(ct_list))
+    nt_list = list(set(nt_list))
+
+    peptide_feature_list = []
+    for peptide in peptide_list:
+        peptide = unicodedata.normalize("NFKD", peptide).strip()
+        ct,aa_list,nt = peptide.split('-')
+        ct_index = ct_list.index(ct)
+        nt_index = nt_list.index(nt)
+
+        tmp_list = []
+        for i, AA_key in enumerate(AA_keys):
+            res = re.finditer(AA_key, aa_list)
+            for s in res:
+                tmp_list.append([s.span()[0], i])
+        tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
+
+        new_tmp_list = []
+        for tmp in tmp_list:
+            if tmp[0]+1 < len(aa_list):
+                if tmp[1] in SR_index_list:
+                    if aa_list[tmp[0]+1] in ['5', '8']:
+                        continue
+            new_tmp_list.append(tmp)
+        tmp_list = new_tmp_list
+
+        AA_index_list = []
+        link_list = []
+        for pair in tmp_list:
+            if pair[1] in link_index_list:
+                if pair[1] == AA_keys.index('='):
+                    link_list.append(len(AA_index_list))
+                else:
+                    link_list.append(len(AA_index_list)+1)
+            if pair[1] not in [AA_keys.index('=')]:
+                AA_index_list.append(pair[1])
+
+        if len(link_list) == 0:
+            link_list = [-1, -1]
+        peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
+        peptide_feature_list.append(peptide_feature)
+
+
+    max_len = np.max([len(v) for v in peptide_feature_list])
+    for peptide_feature in peptide_feature_list:
+        pad_len = max_len - len(peptide_feature)
+        peptide_feature += [-2] * pad_len
+
+    smiles_repP_list = []
+    for i in range(len(smiles_list)):
+        seq_smi = replaceX_smiles(smiles_list[i], peptide_feature_list[i], config['base_atom'])
+        smiles_repP_list.append(seq_smi)
+
+    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+        MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
+
+    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+        Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_list])
+
+    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+        Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
+
+    mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
+
+    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+        repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
+
+    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+        repP_skip7_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
+
+    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+        repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
+
 
     #Correction of mumerical data
     filled_index_list = []
@@ -329,7 +489,6 @@ def main():
     with multiprocessing.Pool(processes = fp_proc_n) as pool:
         repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
-
     target_list = list(config['target_list'].keys())
     target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
     smi_list = ["original", "smiles_repP_skip7"]
@@ -346,7 +505,7 @@ def main():
         r_list = []
         for s in smi_list:
             for f in fingerprint_list:
-                r = calc_prediction_model(s, model, f, fold_n, i, value_log = True, standardize = False)
+                r = calc_prediction_model(s, model, f, fold_n, i, fp_proc_n, descriptor_dimension, value_log = True, standardize = False, data_set = data)
                 r_list.append(r)
         r_list_list.append(r_list)
         max = 0
