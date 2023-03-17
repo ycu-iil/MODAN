@@ -494,15 +494,17 @@ repP_end_time = time.time()
 
 target_values_list = list(config['target_list'].values())
 threshold_list = [i[:2] for i in target_values_list]
-smiles_type_list = [i[2] for i in target_values_list]
-feature_list = [i[3] for i in target_values_list]
 value_log = config['value_log']
 standardize = config['standardize']
 target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
 smiles_select = config['smiles_select']
 fingerpint_select = config['fingerprint_select']
+
 if smiles_select == True:
-    
+    smiles_type_list = [i[2] for i in target_values_list]
+
+if fingerprint_select == True:
+    feature_list = [i[3] for i in target_values_list] 
 
 pred_y_list_list = []
 pred_cov_list_list = []
