@@ -1,0 +1,106 @@
+#Dataset
+#data: './data/抗菌ペプチド情報_共同研究_pep9MDRP_20221017.xlsx'
+#sequence_colume: '修正ペプチド配列'
+data: './data/Dataset_MODAN_round2.xlsx'
+sequence_colume: 'Peptide sequence'
+
+#Registration of amino acid code and name ('amino acid code': 'amino acid name')
+AA_dict_update:
+    'O': 'Orthinine'
+    'X0': 'L-homoserine-(O-allyl)'
+    'J': 'Dab'
+    'X2': 'Sarcosine'
+    'B': 'Ac5c'
+    'U': 'Aib'
+    'Z': 'Ac6c'
+    'S5': '(S)-2-(4-pentenyl)Alanine'
+    'R8': '(R)-2-(7-pentenyl)Alanine'
+
+#Registration of amino acid code and SMILES representation of side chain of L-amino acids ('amino acid code': ' SMILES representation of side chain of L-amino acids')
+AA_joint_update:
+    'O': 'NCCC[1*]'
+    'X0': '[1*]CCOCC=C'
+    'J': 'NCC[1*]'
+    'X2': 'Sarcosine'
+    'B': 'C1CC[1*]C1'
+    'U': 'Aib'
+    'Z': 'C1CC[1*]CC1'
+    'S5': 'C[1*]CCC\C=[300*]'
+    'R8': 'C[1*]CCCCCCC=[300*]'
+
+#Representation of Ca for skip7 simles representaion (P or S)
+base_atom: 'P'
+
+#Prediction performances of the surrogate models
+target_index: 15
+value_log: False
+
+#Define lead sequence in a dataset
+base_index: 8
+
+#Generating AMP candidates
+NAA_index_list: 21
+mutatable_AA_index_list:
+        - 9
+        - 17
+        - 20
+        - 22
+        - 24
+        - 25
+        - 26
+linker_index_list:
+        - 27
+        - 28
+mutation_num: 1
+
+#Recommendation of AMPs
+target_list:
+        - 5
+        - 6
+        - 7
+        - 8
+        - 10
+        - 14
+        - 15
+threshold_list:
+        - - '<='
+          - 5
+        - - '<='
+          - 5
+        - - '<='
+          - 5
+        - - '<='
+          - 5
+        - - '<=' 
+          - 5
+        - - '<=' 
+          - 5
+        - - '>='
+          - 100
+smiles_type_list: 
+        - 'smiles_repP_skip7'
+        - 'smiles_repP_skip7'
+        - 'original'
+        - 'original'
+        - 'original'
+        - 'smiles_repP_skip7'
+        - 'smiles_repP_skip7'
+model: 'physbo'
+feature_list: 
+        - 'MACCS'
+        - 'Morgan_r4_count'
+        - 'Morgan_r2_count'
+        - 'Morgan_r4_count'
+        - 'MACCS'
+        - 'Morgan_r4_count'
+        - 'Morgan_r4_count'
+value_log: True
+standardize: False
+visualize: True
+
+#Information of outputs
+result_type: 'None'
+
+#Paralell processing
+proc_n: 60
+fp_proc_n: 4
