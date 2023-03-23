@@ -22,8 +22,8 @@ pip install physbo
 
 ### 1.Clone this repository and move into it
 ```bash
-git clone git@github.com/ycu-iil/NNpeptide_genration名前は変える
-cd NNpeptide_generation
+git clone git@github.com/ycu-iil/MODAN
+cd MODAN
 ```
 
 ### 2. Recommend AMP candidates
@@ -43,8 +43,8 @@ python main.py
     - amino acid type: 'a' is α-amino acid, 'a_a' is a α,α-disubstituted α-amino acid, 'ring' is a cyclic amino acid 
 
 - A atom changed from α carbon 
-  -P (phosphorus)
-  -S (sulfur)
+  - P (phosphorus)
+  - S (sulfur)
   
 - A criterion each target
   - '<=' or '>='
