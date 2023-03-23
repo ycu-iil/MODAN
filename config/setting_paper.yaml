@@ -1,0 +1,122 @@
+#Dataset
+data: './data/Dataset_MODAN_initial.xlsx'
+sequence_column: 'Peptide sequence'
+
+#Registration of amino acid code and name ('amino acid code': 'amino acid name')
+AA_dict_update:
+    'O':
+        - 'Orthinine'
+        - 'a'
+    'X0':
+        - 'L-homoserine-(O-allyl)'
+        - 'a'
+    'J':
+        - 'Dab'
+        - 'a'
+    'X2':
+        - 'Sarcosine'
+        - 'x'
+    'B': 
+        - 'Ac5c'
+        - 'ring'
+    'U': 
+        - 'Aib'
+        - 'a_a'
+    'Z': 
+        - 'Ac6c'
+        - 'ring'
+    'S5': 
+        - '(S)-2-(4-pentenyl)Alanine'
+        - 'staple'
+    'R8': 
+        - '(R)-2-(7-pentenyl)Alanine'
+        - 'staple'
+
+#Registration of amino acid code and SMILES representation of side chain of L-amino acids ('amino acid code': ' SMILES representation of side chain of L-amino acids')
+AA_joint_update:
+    'O': 'NCCC[1*]'
+    'X0': '[1*]CCOCC=C'
+    'J': 'NCC[1*]'
+    'X2': 'Sarcosine'
+    'B': 'C1CC[1*]C1'
+    'U': 'Aib'
+    'Z': 'C1CC[1*]CC1'
+    'S5': 'C[1*]CCC\C=[300*]'
+    'R8': 'C[1*]CCCCCCC=[300*]'
+
+#Representation of Ca for skip7 simles representaion (P or S)
+base_atom: 'P'
+
+#Define descriptor dimension of the Morgan fingerprint
+Morgan_descriptor_dimension: 1024
+
+#Validate predicition accuracy
+fold_n: 10
+model: 'physbo'
+value_log: True
+standardize: False
+
+#Define lead sequence in a dataset
+base_index: 8
+
+#Generating AMP candidates
+mutatable_AA_list:
+        - 'L'
+        - 'V'
+        - 'O'
+        - 'J'
+        - 'B'
+        - 'U'
+        - 'Z'
+linker_list:
+        - 'S5'
+        - 'R8'
+mutation_num: 2
+
+#Recommendation of AMPs
+smiles_select: True
+fingerprint_select: True
+target_list:
+        'NBRC 3972': 
+                - '<='
+                - 5
+                - 'smiles_repP_skip7'
+                - 'MACCS'
+        'DH5a':
+                - '<='
+                - 5
+                - 'smiles_repP_skip7'
+                - 'Morgan_r4_count'
+        'Pseudomonas aeruginosa':
+                - '<='
+                - 5
+                - 'original'
+                - 'Morgan_r2_count'
+        'Staphylococcus aureus':
+                - '<='
+                - 5
+                - 'original'
+                - 'Morgan_r4_count'
+        'Staphylococcus epidermidis':
+                - '<=' 
+                - 5
+                - 'original'
+                - 'MACCS'
+        'MDRP':
+                - '<=' 
+                - 5
+                - 'smiles_repP_skip7'
+                - 'Morgan_r4_count'
+        'Hemolysis':
+                - '>='
+                - 100
+                - 'smiles_repP_skip7'
+                - 'Morgan_r4_count'
+
+#Information of outputs
+result_type: false
+display_number: 10
+
+#Paralell processing
+proc_n: 60
+fp_proc_n: 4
