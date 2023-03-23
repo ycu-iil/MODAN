@@ -1,5 +1,5 @@
 #Dataset
-data: './data/Dataset_MODAN_round1.xlsx'
+data: './data/Dataset_MODAN_initial.xlsx'
 sequence_column: 'Peptide sequence'
 
 #Registration of amino acid code and name ('amino acid code': 'amino acid name')
