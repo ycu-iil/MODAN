@@ -1,6 +1,6 @@
 # MODAN
 
-MODAN is a multi-objective Bayesian framework for the design of antimicrobial peptides (AMPs) considering any non-proteinogenic amino acids (NPAAs) containing α, α-disubstituted NPAAs and side-chain stapling.
+MODAN is a multi-objective Bayesian framework for the design of antimicrobial peptides (AMPs) considering various non-proteinogenic amino acids (NPAAs) containing α,α-disubstituted NPAAs and side-chain stapling.
 
 ## How to setup
 
@@ -22,26 +22,36 @@ SMILES表現で入れる
 ## How to run MODAN
 
 ### 1.Clone this repository and move into it
-XXXX
+```bash
+git clone git@github.com/ycu-iil/NNpeptide_genration名前は変える
+cd NNpeptide_generation
+```
 
-### 2. Prepare configfile
-データセットの選択
-Prepare NPAAs
-Cαの選択
-閾値の選択
-並列処理
-変異の個数
-変異アミノ酸の選択
-結果の出力方法
-対数にするかどうか
-標準化の有無
-SMILEsの表記方法
-fingerprintの表記方法
-visualizeの有無
+### 2. Prepare config file
+- Select dataset
+  - Dataset_MODAN_round1.xlsx
+  - Dataset_MODAN_round2.xlsx
+- Prepare NPAAs
+- Cαの選択
+- 閾値の選択
+- 並列処理
+- 変異の個数
+- 変異アミノ酸の選択
+- 結果の出力方法
+- 対数にするかどうか
+- 標準化の有無
+- SMILEsの表記方法
+- fingerprintの表記方法
+- visualizeの有無
 
 
 
-### 3. Recommendate AMP candidates
+### 3. Recommend AMP candidates
+
+```bash
+python main.py
+```
+
 
 ## Contact
 ・Kei terayama (terayama@yokohama-cu.ac.jp)
