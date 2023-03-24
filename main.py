@@ -500,7 +500,7 @@ def main():
     smiles_type_list = []
     feature_list = []
     r_list_list = []
-
+    """"
     for i in target_index_list: 
         r_list = []
         for s in smi_list:
@@ -529,7 +529,7 @@ def main():
                 feature_list.append("Morgan_r2_count")
             else:
                 feature_list.append("Morgan_r4_coount") 
-
+    """
 
     #Recommend with BO
     #Select base sequence
