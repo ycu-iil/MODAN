@@ -72,13 +72,14 @@ def make_joint_MC(base_mol, MC_mol, pep_len):
     base_smi = Chem.MolToSmiles(base_mol)
     return base_smi, base_mol
 
-def make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list):
+def make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list, AA_dict):
     AA_key_list = [AA_keys[v] for v in input_aa_list[4:] if v>=0]
 
 
     linker_flag = 0
     for i in range(len(AA_key_list)):
         AA_key = AA_key_list[i]
+
         if AA_key == 'X2':
             #### Main N-C ####
             c_joint_mol = Chem.MolFromSmiles('[1*]C')
@@ -130,98 +131,99 @@ def make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list):
             rxn = AllChem.ReactionFromSmarts(reaction_pattern)
             x = rxn.RunReactants([joint_MC_mol, h_joint_mol])
             joint_MC_mol = x[0][0]
+            if isinstance(AA_dict[AA_key], list):
 
-            if AA_key == 'B':
-                aa_joint = '[50*]CCCC[51*]'
-                aa_joint_mol = Chem.MolFromSmiles(aa_joint)
+                if AA_key == 'B':
+                    aa_joint = '[50*]CCCC[51*]'
+                    aa_joint_mol = Chem.MolFromSmiles(aa_joint)
 
-                reaction_pattern = '[*:1][*'+str(i+1)+'].[*50][*:2] >> [*:1][*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-                joint_MC_mol = x[0][0]
+                    reaction_pattern = '[*:1][*'+str(i+1)+'].[*50][*:2] >> [*:1][*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
+                    joint_MC_mol = x[0][0]
 
-                reaction_pattern = '([*:1]-['+str(i+1+100)+'*].[51*]-[*:2])>>[*:1]-[*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol])
-                joint_MC_mol = x[0][0]
-
-            elif AA_key == 'U':
-                c_joint_mol = Chem.MolFromSmiles('[1*]C')
-
-                #### Main Ca-R ####
-
-                reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-                joint_MC_mol = x[0][0]
-
-                #### Main Ca-H ####
-                reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-                joint_MC_mol = x[0][0]
-
-            elif AA_key == 'Z': 
-                aa_joint = '[50*]CCCCC[51*]'
-                aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-                reaction_pattern = '[*:1][*'+str(i+1)+'].[*50][*:2] >> [*:1][*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-                joint_MC_mol = x[0][0]
-
-                reaction_pattern = '([*:1]-['+str(i+1+100)+'*].[51*]-[*:2])>>[*:1]-[*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol])
-                joint_MC_mol = x[0][0]
-
-            elif AA_key == 'S5': 
-                aa_joint = '[1*]CCCC=[300*]'
-                aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-                reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-                joint_MC_mol = x[0][0]
-
-                if linker_flag == 1:
-                  reaction_pattern = '([C:1111][C:1]=[300*].[300*]=[C:2][C:2222])>>[C:1111]/[*:1]=[*:2]\[C:2222]'
-                  rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                  x = rxn.RunReactants([joint_MC_mol])
-                  joint_MC_mol = x[0][0]
-                  joint_MC_mol.UpdatePropertyCache(strict=False)
-
-                c_joint_mol = Chem.MolFromSmiles('[1*]C')
-                reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-                joint_MC_mol = x[0][0]
-
-                linker_flag = 1
-
-            elif AA_key == 'R8': 
-                aa_joint = '[1*]CCCCCCC=[300*]'
-                aa_joint_mol = Chem.MolFromSmiles(aa_joint)
-
-                reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
-                joint_MC_mol = x[0][0]
-
-                if linker_flag == 1:
-                    reaction_pattern = '([C:1111][*:1]=[300*].[300*]=[*:2][C:2222])>>[C:1111]/[*:1]=[*:2]/[C:2222]'
+                    reaction_pattern = '([*:1]-['+str(i+1+100)+'*].[51*]-[*:2])>>[*:1]-[*:2]'
                     rxn = AllChem.ReactionFromSmarts(reaction_pattern)
                     x = rxn.RunReactants([joint_MC_mol])
                     joint_MC_mol = x[0][0]
-                    joint_MC_mol.UpdatePropertyCache(strict=False)
 
-                c_joint_mol = Chem.MolFromSmiles('[1*]C')
-                reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
-                rxn = AllChem.ReactionFromSmarts(reaction_pattern)
-                x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
-                joint_MC_mol = x[0][0]
+                elif AA_key == 'U':
+                    c_joint_mol = Chem.MolFromSmiles('[1*]C')
 
-                linker_flag = 1
+                    #### Main Ca-R ####
+
+                    reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
+                    joint_MC_mol = x[0][0]
+
+                    #### Main Ca-H ####
+                    reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
+                    joint_MC_mol = x[0][0]
+
+                elif AA_key == 'Z': 
+                    aa_joint = '[50*]CCCCC[51*]'
+                    aa_joint_mol = Chem.MolFromSmiles(aa_joint)
+
+                    reaction_pattern = '[*:1][*'+str(i+1)+'].[*50][*:2] >> [*:1][*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
+                    joint_MC_mol = x[0][0]
+
+                    reaction_pattern = '([*:1]-['+str(i+1+100)+'*].[51*]-[*:2])>>[*:1]-[*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol])
+                    joint_MC_mol = x[0][0]
+
+                elif AA_key == 'S5': 
+                    aa_joint = '[1*]CCCC=[300*]'
+                    aa_joint_mol = Chem.MolFromSmiles(aa_joint)
+
+                    reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
+                    joint_MC_mol = x[0][0]
+
+                    if linker_flag == 1:
+                        reaction_pattern = '([C:1111][C:1]=[300*].[300*]=[C:2][C:2222])>>[C:1111]/[*:1]=[*:2]\[C:2222]'
+                        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                        x = rxn.RunReactants([joint_MC_mol])
+                        joint_MC_mol = x[0][0]
+                        joint_MC_mol.UpdatePropertyCache(strict=False)
+
+                    c_joint_mol = Chem.MolFromSmiles('[1*]C')
+                    reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
+                    joint_MC_mol = x[0][0]
+
+                    linker_flag = 1
+
+                elif AA_key == 'R8': 
+                    aa_joint = '[1*]CCCCCCC=[300*]'
+                    aa_joint_mol = Chem.MolFromSmiles(aa_joint)
+
+                    reaction_pattern = '[*:1][*'+str(i+1+100)+'].[*1][*:2] >> [*:1][*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol, aa_joint_mol])
+                    joint_MC_mol = x[0][0]
+
+                    if linker_flag == 1:
+                        reaction_pattern = '([C:1111][*:1]=[300*].[300*]=[*:2][C:2222])>>[C:1111]/[*:1]=[*:2]/[C:2222]'
+                        rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                        x = rxn.RunReactants([joint_MC_mol])
+                        joint_MC_mol = x[0][0]
+                        joint_MC_mol.UpdatePropertyCache(strict=False)
+
+                    c_joint_mol = Chem.MolFromSmiles('[1*]C')
+                    reaction_pattern = '[*:1][*'+str(i+1)+'].[*1][*:2] >> [*:1][*:2]'
+                    rxn = AllChem.ReactionFromSmarts(reaction_pattern)
+                    x = rxn.RunReactants([joint_MC_mol, c_joint_mol])
+                    joint_MC_mol = x[0][0]
+
+                    linker_flag = 1
 
 
             else:
@@ -245,7 +247,7 @@ def make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list):
     return Chem.MolToSmiles(joint_MC_mol), joint_MC_mol
 
 
-def generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_joint):
+def generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint):
     pep_len = len([v for v in  peptide_feature_list[base_index][4:] if v >= 0])
     base_smiles = smiles_list[base_index]
     base_mol = Chem.MolFromSmiles(base_smiles)
@@ -253,7 +255,7 @@ def generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smile
     MC_mol = Chem.MolFromSmiles('NCC(=O)'*(pep_len))
     matches = base_mol.GetSubstructMatches(MC_mol)[0]
     joint_MC_smi, joint_MC_mol = make_joint_MC(base_mol, MC_mol, pep_len)
-    AA_keys = list(AA_joint.keys())
-    peptide_smi, peptide_mol = make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list)
+    AA_keys = list(AA_dict.keys())
+    peptide_smi, peptide_mol = make_new_peptide(joint_MC_mol, AA_keys, AA_joint, input_aa_list, AA_dict)
     return peptide_smi, peptide_mol
 
