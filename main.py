@@ -530,7 +530,7 @@ def main():
             else:
                 feature_list.append("Morgan_r4_coount") 
     """
-
+    
     #Recommend with BO
     #Select base sequence
     #Correspnd to only L-amino acids
@@ -546,7 +546,7 @@ def main():
     mutatable_AA_index_list = [AA_keys.index(i) for i in config['mutatable_AA_list']]
     linker_index_list = [AA_keys.index(i) for i in config['linker_list']]
     result_type = config['result_type']
-
+    
     position_index_list = range(pep_len)
     pos_comb_list = itertools.combinations(position_index_list, mutation_num)
 
@@ -804,6 +804,6 @@ def main():
         df.columns = ["Sequence","Score"] + target_list
         file_name = "top" + str(display_number) + ".csv"
         df.to_csv("./result/" + file_name, encoding="shift_jis")
-
+    
 if __name__ == "__main__":
     main()
