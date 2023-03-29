@@ -4,15 +4,16 @@ MODAN is a multi-objective Bayesian framework for the design of antimicrobial pe
 
 ## Requirements
 あってる?
-Python: 3.9.12
-rdkit-pypi: 2021.03.5
-numpy: 1.22.3
-pandas: 1.4.2
-physbo: 1.0.1
+- Python: 3.9.12
+- rdkit-pypi: 2021.03.5
+- numpy: 1.22.3
+- pandas: 1.4.2
+- physbo: 1.0.1
 
 ## How to setup
 
 これで全部かは不安
+pickleはpipでinstallできない
 ```bash
 pip install rdkit-pypi scikit-learn lightgbm optuna pandas matplotlib mordred physbo pickle multiprocessing yaml argparse os
 ```
