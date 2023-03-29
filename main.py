@@ -28,7 +28,7 @@ import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
 from smiles_handler import replaceX_smiles, calc_graph_connect
 
-with open('./config/setting.yaml') as file:
+with open('./config/setting_paper.yaml') as file:
     config = yaml.safe_load(file.read())
 
 def generate_peptide_from_mutation_info(input_aa_list, mutation_info, base_index = config['base_index'], data_set = pd.read_excel(config['data'])):
@@ -500,36 +500,40 @@ def main():
     smiles_type_list = []
     feature_list = []
     r_list_list = []
-    """"
-    for i in target_index_list: 
-        r_list = []
-        for s in smi_list:
-            for f in fingerprint_list:
-                r = calc_prediction_model(s, model, f, fold_n, i, fp_proc_n, descriptor_dimension, value_log = True, standardize = False, data_set = data)
-                r_list.append(r)
-        r_list_list.append(r_list)
-        max = 0
-        for k, each_r in enumerate(r_list):
-            if each_r >= max:
-                max = each_r
-                max_index = k
-        if max_index <= 2:
-            smiles_type_list.append("original")
-            if max_index == 0:
-                feature_list.append("MACCS")
-            elif max_index == 1:
-                feature_list.append("Morgan_r2_count")
+    
+    smiles_select = config['smiles_select']
+    fingerprint_select = config['fingerprint_select']
+    if smiles_select == None or fingerprint_select == None:
+
+        for i in target_index_list: 
+            r_list = []
+            for s in smi_list:
+                for f in fingerprint_list:
+                    r = calc_prediction_model(s, model, f, fold_n, i, fp_proc_n, descriptor_dimension, value_log = True, standardize = False, data_set = data)
+                    r_list.append(r)
+            r_list_list.append(r_list)
+            max = 0
+            for k, each_r in enumerate(r_list):
+                if each_r >= max:
+                    max = each_r
+                    max_index = k
+            if max_index <= 2:
+                smiles_type_list.append("original")
+                if max_index == 0:
+                    feature_list.append("MACCS")
+                elif max_index == 1:
+                    feature_list.append("Morgan_r2_count")
+                else:
+                    feature_list.append("Morgan_r4_coount")
             else:
-                feature_list.append("Morgan_r4_coount")
-        else:
-            smiles_type_list.append("smiles_repP_skip7")
-            if max_index == 3:
-                feature_list.append("MACCS")
-            elif max_index == 4:
-                feature_list.append("Morgan_r2_count")
-            else:
-                feature_list.append("Morgan_r4_coount") 
-    """
+                smiles_type_list.append("smiles_repP_skip7")
+                if max_index == 3:
+                    feature_list.append("MACCS")
+                elif max_index == 4:
+                    feature_list.append("Morgan_r2_count")
+                else:
+                    feature_list.append("Morgan_r4_coount") 
+
     
     #Recommend with BO
     #Select base sequence
@@ -546,7 +550,7 @@ def main():
     mutatable_AA_index_list = [AA_keys.index(i) for i in config['mutatable_AA_list']]
     linker_index_list = [AA_keys.index(i) for i in config['linker_list']]
     result_type = config['result_type']
-    
+
     position_index_list = range(pep_len)
     pos_comb_list = itertools.combinations(position_index_list, mutation_num)
 
