@@ -14,6 +14,8 @@ import pickle
 import multiprocessing
 import shap
 import yaml
+import argparse
+import os
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -28,8 +30,21 @@ import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
 from smiles_handler import replaceX_smiles, calc_graph_connect
 
-with open('./config/setting_paper.yaml') as file:
-    config = yaml.safe_load(file.read())
+#with open('./config/setting_paper.yaml') as file:
+#    config = yaml.safe_load(file.read())
+
+parser = argparse.ArgumentParser(
+        description="",
+        usage=f"python {os.path.basename(__file__)} -c CONFIG_FILE"
+)
+
+parser.add_argument(
+        "-c", "--config", type=str, required=True,
+        help="path to a config file"
+)
+
+with open(parser.parse_args().config, "r") as f:
+    config = yaml.load(f, Loader=yaml.SafeLoader)
 
 def generate_peptide_from_mutation_info(input_aa_list, mutation_info, base_index = config['base_index'], data_set = pd.read_excel(config['data'])):
     data_num = len([x for x in data_set[config['sequence_column']] if pd.isnull(x) == False])
