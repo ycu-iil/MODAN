@@ -30,9 +30,6 @@ import metadata
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
 from smiles_handler import replaceX_smiles, calc_graph_connect
 
-#with open('./config/setting_paper.yaml') as file:
-#    config = yaml.safe_load(file.read())
-
 parser = argparse.ArgumentParser(
         description="",
         usage=f"python {os.path.basename(__file__)} -c CONFIG_FILE"
@@ -154,9 +151,6 @@ def GP_predict(train_X, test_X, train_y, test_y):
 
 
 #Validate predicition accuracy
-#model list: 'RF', 'lightgbm'
-#feature list: 'Morgan_r2_count', 'Morgan_r4_count', 'MACCS' 
-#fold_n: fold num of cross-validation
 
 def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, fp_proc_n = 4, descriptor_dimension = 1024, value_log = False, standardize = False, data_set = pd.read_excel(config['data'])):
 
@@ -551,8 +545,6 @@ def main():
 
     
     #Recommend with BO
-    #Select base sequence
-    #Correspnd to only L-amino acids
 
     base_index = config['base_index']
     input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
