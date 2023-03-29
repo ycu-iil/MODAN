@@ -13,16 +13,16 @@ MODAN is a multi-objective Bayesian framework for the design of antimicrobial pe
 ## How to setup
 
 これで全部かは不安
-pickleはpipでinstallできない
+pickle, multiprocessing, physbo, mordredはpipでinstallできない
 ```bash
-pip install rdkit-pypi scikit-learn lightgbm optuna pandas matplotlib mordred physbo pickle multiprocessing yaml argparse os
+pip install rdkit-pypi scikit-learn lightgbm optuna pandas matplotlib yaml argparse os
 ```
 
 ## How to run MODAN
 
 ### 1.Clone this repository and move into it
 ```bash
-git clone git@github.com/ycu-iil/MODAN
+git clone git@github.com:ycu-iil/MODAN
 cd MODAN
 ```
 
@@ -32,7 +32,7 @@ cd MODAN
 ### 3. Recommend AMP candidates 
 
 ```bash
-python main.py　-c config/setting_paper.yaml
+python main.py -c config/setting_paper.yaml
 ```
 
 ### 4. Advanced usage
