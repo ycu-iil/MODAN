@@ -4,15 +4,12 @@ import math
 import unicodedata
 import re
 import time
-import lightgbm as lgb
 import matplotlib.pyplot as plt
 import numpy as np
-import optuna
 import pandas as pd
 import physbo
 import pickle
 import multiprocessing
-import shap
 import yaml
 import argparse
 import os
@@ -22,7 +19,6 @@ from rdkit.Chem import AllChem
 from sklearn import preprocessing 
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.metrics import r2_score, mean_squared_error
-from sklearn.ensemble import RandomForestRegressor
 
 from acquisition_function import calc_PI_overfmax, calc_PI_underfmin
 from feature_generator import calc_MorganCount
@@ -324,46 +320,12 @@ def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, fp_
         X_test = X[test_index]
         y_test = y[test_index]
 
-        if model == 'RF':
-            train_model = RandomForestRegressor()
-            train_model.fit(X_train, y_train)
-        elif model == 'lightgbm':
-            seed = 0
-            train_model = lgb.LGBMRegressor(boosting_type='gbdt', objective='regression',
-                            random_state=seed, n_estimators=100)
-            fit_params = {
-                'verbose': 2,
-                'early_stopping_rounds': 10,
-                'eval_metric': 'mean_squared_error',
-                'eval_set': [(X_train, y_train)]
-                }
-            cv = KFold(n_splits=5, shuffle=True, random_state=seed)
-            study = optuna.create_study(direction='maximize',sampler=optuna.samplers.TPESampler(seed=seed))
-            study.optimize(objective, n_trials=200)
-            best_params = study.best_trial.params
-            train_model.set_params(**best_params)
-            train_model.fit(X_train, y_train)
+        [y_train_pred, y_train_pred_cov], [y_pred, y_pred_cov] = GP_predict(X_train, X_test, y_train, y_test)
+        train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
+        train_r = np.corrcoef(y_train, y_train_pred)[0][1]
 
-            #SHAP analysis
-            X_shap = X
-            explainer = shap.TreeExplainer(model=train_model, feature_perturbation='tree_path_dependent')
-            shap_values = explainer.shap_values(X=X_shap)
-            shap.summary_plot(shap_values, X_shap, plot_type="bar")
-            shap.plots.waterfall(explainer(X_shap)[8])
-
-            y_pred = train_model.predict(X_test)
-            y_train_pred = train_model.predict(X_train)
-
-            y_pred_list += list(y_pred)
-            y_test_list += list(y_test)
-
-        elif model == 'physbo':
-            [y_train_pred, y_train_pred_cov], [y_pred, y_pred_cov] = GP_predict(X_train, X_test, y_train, y_test)
-            train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
-            train_r = np.corrcoef(y_train, y_train_pred)[0][1]
-
-            y_pred_list += list(y_pred)
-            y_test_list += list(y_test)
+        y_pred_list += list(y_pred)
+        y_test_list += list(y_test)
 
         y_index_list += list(test_index)
         r = np.corrcoef(y_test_list, y_pred_list)[0][1]
