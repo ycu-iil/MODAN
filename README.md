@@ -2,6 +2,9 @@
 
 MODAN is a multi-objective Bayesian framework for the design of antimicrobial peptides (AMPs) considering various non-proteinogenic amino acids (NPAAs) containing α,α-disubstituted NPAAs and side-chain stapling.
 
+## Confirmed
+Python: 3.9.12
+
 ## How to setup
 ```bash
 pip install rdkit-pypi==2021.3.5 scikit-learn==1.1.0 pandas==1.4.2 matplotlib==3.5.2 pyyaml==6.0 physbo==1.0.1 mordred==1.2.0 openpyxl==3.0.10
@@ -11,7 +14,7 @@ pip install rdkit-pypi==2021.3.5 scikit-learn==1.1.0 pandas==1.4.2 matplotlib==3
 
 ### 1. Clone this repository and move into it
 ```bash
-git clone git@github.com:ycu-iil/MODAN
+git clone git@github.com:ycu-iil/MODAN.git
 cd MODAN
 ```
 
