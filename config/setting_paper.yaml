@@ -18,13 +18,13 @@ AA_dict_update:
         - 'x'
     'B': 
         - 'Ac5c'
-        - 'ring'
+        - 'cyclic'
     'U': 
         - 'Aib'
         - 'a_a'
     'Z': 
         - 'Ac6c'
-        - 'ring'
+        - 'cylic'
     'S5': 
         - '(S)-2-(4-pentenyl)Alanine'
         - 'staple'
@@ -38,9 +38,11 @@ AA_joint_update:
     'X0': '[1*]CCOCC=C'
     'J': 'NCC[1*]'
     'X2': 'Sarcosine'
-    'B': 'C1CC[1*]C1'
-    'U': 'Aib'
-    'Z': 'C1CC[1*]CC1'
+    'B': 'CCCC'
+    'U': 
+        - 'C'
+        - 'C'
+    'Z': 'CCCCC'
     'S5': 'C[1*]CCC\C=[300*]'
     'R8': 'C[1*]CCCCCCC=[300*]'
 
