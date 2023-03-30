@@ -13,7 +13,7 @@ MODAN is a multi-objective Bayesian framework for the design of antimicrobial pe
 ## How to setup
 
 ```bash
-pip install rdkit-pypi scikit-learn lightgbm optuna pandas matplotlib pyyaml argparse physbo mordred
+pip install rdkit-pypi scikit-learn lightgbm optuna pandas matplotlib pyyaml argparse physbo mordred shap openpyxl
 ```
 
 ## How to run MODAN
