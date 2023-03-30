@@ -464,10 +464,10 @@ def main():
     target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
     smi_list = ["original", "smiles_repP_skip7"]
     fingerprint_list = ['MACCS', 'Morgan_r2_count', 'Morgan_r4_count']
-    model = config['model']
-    fold_n = 10
+    model = 'physbo'
+    fold_n = config['fold_n']
     value_log = config['value_log']
-    standardize = config['standardize']
+    standardize = False 
     smiles_type_list = []
     feature_list = []
     r_list_list = []
@@ -627,7 +627,7 @@ def main():
     target_values_list = list(config['target_list'].values())
     threshold_list = [i[:2] for i in target_values_list]
     value_log = config['value_log']
-    standardize = config['standardize']
+    standardize = False
     target_index_list = [i for i, name in enumerate(data.columns) if name in config['target_list']]
     smiles_select = config['smiles_select']
     fingerprint_select = config['fingerprint_select']
