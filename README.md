@@ -16,7 +16,7 @@ cd MODAN
 ```
 
 ### 2. Prepare a config file
-もし作るならAdvanced usageを参考に
+The Recommndataion of options are described in the "Advaced usage" section. For details, please refer to a sample file ("config/setting.yaml").
 
 ### 3. Recommend AMP candidates 
 ```bash
@@ -27,8 +27,8 @@ python main.py -c config/setting_paper.yaml
 
 | Option  | Description |
 | ------------- | ------------- |
-| `Data`  | データセットのファイルを指定します。データセットは二種類あります。 `Dataset_MODAN_initial.xlsx`　`Dataset_MODAN_initial_round1.xlsx` |
-| `AA_dict_update`  | 使用するアミノ酸のプログラム中で使用するコード、名前、アミノ酸タイプを指定して登録できます。登録できるアミノ酸タイプは3タイプです。α-amino acidは'a', α,α-disubstituted α-amino acidは'a_a', α,α-disubstituted α-amino acidの中でも環構造になっているアミノ酸は'ring'|
+| `Data`  | You can specify a file of a dataset. There are two default dataset, in which `Dataset_MODAN_initial.xlsx` and `Dataset_MODAN_initial_round1.xlsx`. |
+| `AA_dict_update`  | You can register various amino asids used in MODAN. The registering item are a code used in MODAN, amino acid’ name, and amino acid’ type. The total number of amino acid types that can be registered is three. The first type is 'a' as a α-amino acid. The second type is 'a_a' as α,α-disubstituted α-amino acid. The third type is 'ring' as α,α-disubstituted α-amino acid whose side chain is a cyclic structure.の中でも環構造になっているアミノ酸は'ring'|
 | `AA_joint_update` | `AA_dict_update`で登録したアミノ酸のコードとアミノ酸の側鎖のSMILESを登録します。'a_a'はリスト形式で二種類のSMILESを登録します。 |
 | `base_atom` | Skip-7 representation (ESI参照)を使用する際に、α carbonの変換原子を選択できます。　phosphorusなら`P`sulfurなら`S`　|
 | `Morgan_descriptor_dimension` | Define descriptor dimension of the Morgan fingerprint |
