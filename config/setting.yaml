@@ -54,9 +54,7 @@ Morgan_descriptor_dimension: 1024
 
 #Validate predicition accuracy
 fold_n: 10
-model: 'physbo'
 value_log: True
-standardize: False
 
 #Define lead sequence in a dataset
 base_index: 8
