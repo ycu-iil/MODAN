@@ -19,7 +19,7 @@ cd MODAN
 ```
 
 ### 2. Prepare a config file
-The Recommndataion of options are described in the "Advaced usage" section. For details, please refer to a sample file ("config/setting.yaml").
+The Recommndataion of options are described in the "Advaced usage" section. For details, please refer to a sample file (config/setting.yaml).
 
 ### 3. Recommend AMP candidates 
 ```bash
