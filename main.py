@@ -37,7 +37,9 @@ parser.add_argument(
 with open(parser.parse_args().config, "r") as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
-def generate_peptide_from_mutation_info(input_aa_list, mutation_info, base_index = config['base_index'], data_set = pd.read_excel(config['data'])):
+def generate_peptide_from_mutation_info(
+        input_aa_list, mutation_info, base_index = config['base_index'],
+        data_set = pd.read_excel(config['data'])):
     data_num = len([x for x in data_set[config['sequence_column']] if pd.isnull(x) == False])
     peptide_list = data_set[config['sequence_column']][:data_num]
     smiles_list = data_set['SMILES'][:data_num]
@@ -146,7 +148,11 @@ def GP_predict(train_X, test_X, train_y, test_y):
 
 #Validate predicition accuracy
 
-def calc_prediction_model(smiles_type, model, feature, fold_n, target_index, fp_proc_n = 4, descriptor_dimension = 1024, value_log = False, standardize = False, data_set = pd.read_excel(config['data'])):
+def calc_prediction_model(
+        smiles_type, model, feature, fold_n, target_index, 
+        fp_proc_n = 4, descriptor_dimension = 1024, 
+        value_log = False, standardize = False,
+        data_set = pd.read_excel(config['data'])):
 
     data_num = len([x for x in data_set[config['sequence_column']] if pd.isnull(x) == False])
     target_name = data_set.keys()[target_index]
