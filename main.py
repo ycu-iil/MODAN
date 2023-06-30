@@ -36,8 +36,8 @@ with open(parser.parse_args().config, "r") as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
 def generate_peptide_from_mutation_info(
-        input_aa_list, mutation_info, base_index = config['base_index'],
-        data_set = pd.read_excel(config['data'])):
+        input_aa_list, mutation_info, base_index=config['base_index'],
+        data_set=pd.read_excel(config['data'])):
     data_num = len([x for x in data_set[config['sequence_column']] if pd.isnull(x) == False])
     peptide_list = data_set[config['sequence_column']][:data_num]
     smiles_list = data_set['SMILES'][:data_num]
@@ -116,18 +116,18 @@ def generate_peptide_from_mutation_info(
                                                                  AA_dict, AA_joint)  
         return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
 
-def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):   
+def mol2FP(mol, fp_type, radial=4, descriptor_dimension=1024):   
     if fp_type == 'MorganCount':
         return calc_MorganCount(mol, radial, descriptor_dimension)
     elif fp_type == 'MACCS':
         return AllChem.GetMACCSKeysFingerprint(mol)
 
-def smi2repP_skip(smi, peptide_feature, skip = 7):
+def smi2repP_skip(smi, peptide_feature, skip=7):
     return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
 def GP_predict(train_X, test_X, train_y, test_y):
 
-    cov = physbo.gp.cov.gauss(train_X,ard = False)
+    cov = physbo.gp.cov.gauss(train_X, ard=False)
     mean = physbo.gp.mean.const()
     lik = physbo.gp.lik.gauss()
     gp = physbo.gp.model(lik=lik,mean=mean,cov=cov)
@@ -148,9 +148,9 @@ def GP_predict(train_X, test_X, train_y, test_y):
 #Validate predicition accuracy
 def calc_prediction_model(
         smiles_type, model, feature, fold_n, target_index, 
-        fp_proc_n = 4, descriptor_dimension = 1024, 
-        value_log = False, standardize = False,
-        data_set = pd.read_excel(config['data'])):
+        fp_proc_n=4, descriptor_dimension=1024, 
+        value_log=False, standardize=False,
+        data_set=pd.read_excel(config['data'])):
 
     data_num = len([x for x in data_set[config['sequence_column']] if pd.isnull(x) == False])
     target_name = data_set.keys()[target_index]
@@ -229,25 +229,25 @@ def calc_prediction_model(
         seq_smi = replaceX_smiles(smiles_list[i], peptide_feature_list[i], config['base_atom'])
         smiles_repP_list.append(seq_smi)
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
     mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) 
                            for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         repP_skip7_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
     #Correction of mumerical data
@@ -268,7 +268,7 @@ def calc_prediction_model(
         exp_modified_list = np.log10(exp_modified_list)
     plt.hist(np.array(exp_modified_list)[filled_index_list])
     plt.title(target_name 
-              + 'Log10=' 
+              + 'Log10 = ' 
               + str(value_log))
     plt.xlabel(target_name)
     plt.ylabel('frequency')
@@ -300,7 +300,7 @@ def calc_prediction_model(
   
     y = np.array(exp_modified_list)[filled_index_list]
 
-    kf = KFold(n_splits = fold_n, shuffle = True, random_state=0)
+    kf = KFold(n_splits=fold_n, shuffle=True, random_state=0)
 
     y_pred_list = []
     y_test_list = []
@@ -351,10 +351,10 @@ def calc_prediction_model(
     for i in range(len(y_test_list)):
         plt.annotate(str(i + 1), (y_test_list[i] + 0.02, y_pred_list[i] + 0.02))
     plt.title(target_name
-              +'(N='+str(len(y_test_list))
+              +'(N = '+str(len(y_test_list))
               + ', model = '
               + model
-              + ') r='
+              + ') r = '
               + str(round(r, 3)))
     plt.grid()
     if value_log:
@@ -461,25 +461,25 @@ def main():
     descriptor_dimension = config['Morgan_descriptor_dimension']
     fp_proc_n = config['fp_proc_n']
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
     mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) 
                            for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         repP_skip7_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
     target_list = list(config['target_list'].keys())
@@ -504,8 +504,8 @@ def main():
                 for f in fingerprint_list:
                     r = calc_prediction_model(s, model, f, fold_n, i, 
                                               fp_proc_n, descriptor_dimension, 
-                                              value_log = True, standardize = False, 
-                                              data_set = data)
+                                              value_log=True, standardize=False, 
+                                              data_set=data)
                     r_list.append(r)
             r_list_list.append(r_list)
             max = 0
@@ -530,12 +530,9 @@ def main():
                 else:
                     feature_list.append("Morgan_r4_coount") 
 
-    
     #Recommend with BO
-
     base_index = config['base_index']
     input_aa_list = copy.deepcopy(peptide_feature_list[base_index])
-
     proc_n = config['proc_n']
     fp_proc_n = config['fp_proc_n']
     mutation_num = config['mutation_num']
@@ -544,22 +541,19 @@ def main():
     mutatable_AA_index_list = [AA_keys.index(i) for i in config['mutatable_AA_list']]
     linker_index_list = [AA_keys.index(i) for i in config['linker_list']]
     result_type = config['result_type']
-
     position_index_list = range(pep_len)
     pos_comb_list = itertools.combinations(position_index_list, mutation_num)
-
     mutation_info_list = [[[-1, -1], [], []]]
 
     for pos_comb in pos_comb_list:
         for mutation_pos in pos_comb:
-            for mutation_aa in itertools.product(mutatable_AA_index_list, repeat = mutation_num):
+            for mutation_aa in itertools.product(mutatable_AA_index_list, repeat=mutation_num):
                 mutation_info_list.append([[-1, -1], list(pos_comb), list(mutation_aa)])
 
     #Generate information of peptides including staple 
     linker_start_time = time.time()
     linker_mutation_info_list = []
-    for m_i, mutation_info in enumerate(mutation_info_list):
-    
+    for m_i, mutation_info in enumerate(mutation_info_list):    
         for i in range(pep_len):
             for un in linker_index_list:
                 if un == 27: #S5-S5
@@ -621,30 +615,30 @@ def main():
 
     fp_start_time = time.time()
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         Cand_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         Cand_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_list])
 
-    with multiprocessing.Pool(processes = fp_proc_n) as pool:
+    with multiprocessing.Pool(processes=fp_proc_n) as pool:
         Cand_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
     fp_end_time = time.time()
 
     #smiles_repP_skip7
     repP_start_time = time.time()
-    with multiprocessing.Pool(processes = proc_n) as pool:
+    with multiprocessing.Pool(processes=proc_n) as pool:
         mol_repP_skip7_list = pool.starmap(smi2repP_skip, [(smi, peptide_feature, 7) for smi, 
                                                            peptide_feature in zip(new_smiles_repP_list, new_peptide_feature_list)])
 
-    with multiprocessing.Pool(processes = proc_n) as pool:
+    with multiprocessing.Pool(processes=proc_n) as pool:
         Cand_repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
 
-    with multiprocessing.Pool(processes = proc_n) as pool:
+    with multiprocessing.Pool(processes=proc_n) as pool:
         Cand_repP_skip7_Morgan_r2_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 2, descriptor_dimension) for mol in mol_repP_skip7_list])
 
-    with multiprocessing.Pool(processes = proc_n) as pool:
+    with multiprocessing.Pool(processes=proc_n) as pool:
         Cand_repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
     repP_end_time = time.time()
@@ -744,7 +738,7 @@ def main():
     plt.plot(total_pi_score_list)
     plt.ylabel('Total PI score')
     plt.grid()
-    plt.savefig('result/bo_PI score.png', dpi = 300)
+    plt.savefig('result/bo_PI score.png', dpi=300)
     plt.show()
 
     with open('result/total_pi_score_list.pkl', mode='wb') as f:
