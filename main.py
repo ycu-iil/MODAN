@@ -35,6 +35,7 @@ parser.add_argument(
 with open(parser.parse_args().config, "r") as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
+
 def generate_peptide_from_mutation_info(
         input_aa_list, mutation_info, base_index=config['base_index'],
         data_set=pd.read_excel(config['data'])):
@@ -47,23 +48,28 @@ def generate_peptide_from_mutation_info(
     AA_joint.update(config['AA_joint_update'])
     AA_keys = list(AA_dict.keys())
     link_index_list = []
+
     for st in ['S5', 'R8', 's5', 'r8', '=']:
         link_index_list.append(AA_keys.index(st))
 
     SR_index_list = []
+
     for st in ['S', 'R', 's', 'r']:
         SR_index_list.append(AA_keys.index(st))
 
     ct_list, nt_list = [], []
+
     for peptide in peptide_list:
         peptide = unicodedata.normalize("NFKD", peptide).strip()
         ct,aa_list,nt = peptide.split('-')
         ct_list.append(ct)
         nt_list.append(nt)
+
     ct_list = list(set(ct_list))
     nt_list = list(set(nt_list))
 
     peptide_feature_list = []
+
     for peptide in peptide_list:
         peptide = unicodedata.normalize("NFKD", peptide).strip()
         ct,aa_list,nt = peptide.split('-')
@@ -75,19 +81,22 @@ def generate_peptide_from_mutation_info(
             res = re.finditer(AA_key, aa_list)
             for s in res:
                 tmp_list.append([s.span()[0], i])
-        tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
 
+        tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
         new_tmp_list = []
+
         for tmp in tmp_list:
             if tmp[0] + 1 < len(aa_list):
                 if tmp[1] in SR_index_list:
                     if aa_list[tmp[0] + 1] in ['5', '8']:
                         continue
             new_tmp_list.append(tmp)
+
         tmp_list = new_tmp_list
 
         AA_index_list = []
         link_list = []
+
         for pair in tmp_list:
             if pair[1] in link_index_list:
                 if pair[1] == AA_keys.index('='):
@@ -99,15 +108,18 @@ def generate_peptide_from_mutation_info(
 
         if len(link_list) == 0:
             link_list = [-1, -1]
+
         peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
         peptide_feature_list.append(peptide_feature)
 
     input_aa_list[2:4] = mutation_info[0]
     b  = copy.copy(input_aa_list)
     c = []
+
     for m_pos, m_aa in zip(mutation_info[1], mutation_info[2]):
         input_aa_list[4+m_pos] = m_aa
         c = copy.copy(input_aa_list)
+
     if b == c:
         return None
     else:
@@ -116,34 +128,33 @@ def generate_peptide_from_mutation_info(
                                                                  AA_dict, AA_joint)  
         return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
 
-def mol2FP(mol, fp_type, radial=4, descriptor_dimension=1024):   
+
+def mol2FP(mol, fp_type, radial=4, descriptor_dimension=1024): 
     if fp_type == 'MorganCount':
         return calc_MorganCount(mol, radial, descriptor_dimension)
     elif fp_type == 'MACCS':
         return AllChem.GetMACCSKeysFingerprint(mol)
 
+
 def smi2repP_skip(smi, peptide_feature, skip=7):
     return Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip))
 
-def GP_predict(train_X, test_X, train_y, test_y):
 
+def GP_predict(train_X, test_X, train_y, test_y):
     cov = physbo.gp.cov.gauss(train_X, ard=False)
     mean = physbo.gp.mean.const()
     lik = physbo.gp.lik.gauss()
     gp = physbo.gp.model(lik=lik,mean=mean,cov=cov)
     config = physbo.misc.set_config()
-
     gp.fit(train_X, train_y, config)
     gp.print_params()
     gp.prepare(train_X, train_y)
-
     train_fmean = gp.get_post_fmean(train_X, train_X) 
     train_fcov = gp.get_post_fcov(train_X, train_X)
-
     test_fmean = gp.get_post_fmean(train_X, test_X) 
     test_fcov = gp.get_post_fcov(train_X, test_X)
-
     return [train_fmean, train_fcov], [test_fmean, test_fcov] 
+
 
 #Validate predicition accuracy
 def calc_prediction_model(
@@ -164,47 +175,54 @@ def calc_prediction_model(
     AA_joint.update(config['AA_joint_update'])
     AA_keys = list(AA_dict.keys())
     link_index_list = []
+
     for st in ['S5', 'R8', 's5', 'r8', '=']:
         link_index_list.append(AA_keys.index(st))
 
     SR_index_list = []
+
     for st in ['S', 'R', 's', 'r']:
         SR_index_list.append(AA_keys.index(st))
 
     ct_list, nt_list = [], []
+
     for peptide in peptide_list:
         peptide = unicodedata.normalize("NFKD", peptide).strip()
         ct,aa_list,nt = peptide.split('-')
         ct_list.append(ct)
         nt_list.append(nt)
+
     ct_list = list(set(ct_list))
     nt_list = list(set(nt_list))
 
     peptide_feature_list = []
+
     for peptide in peptide_list:
         peptide = unicodedata.normalize("NFKD", peptide).strip()
         ct,aa_list,nt = peptide.split('-')
         ct_index = ct_list.index(ct)
         nt_index = nt_list.index(nt)
-
         tmp_list = []
+
         for i, AA_key in enumerate(AA_keys):
             res = re.finditer(AA_key, aa_list)
             for s in res:
                 tmp_list.append([s.span()[0], i])
-        tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
 
+        tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
         new_tmp_list = []
+
         for tmp in tmp_list:
             if tmp[0] + 1 < len(aa_list):
                 if tmp[1] in SR_index_list:
                     if aa_list[tmp[0] + 1] in ['5', '8']:
                         continue
             new_tmp_list.append(tmp)
-        tmp_list = new_tmp_list
 
+        tmp_list = new_tmp_list
         AA_index_list = []
         link_list = []
+
         for pair in tmp_list:
             if pair[1] in link_index_list:
                 if pair[1] == AA_keys.index('='):
@@ -216,15 +234,18 @@ def calc_prediction_model(
 
         if len(link_list) == 0:
             link_list = [-1, -1]
+        
         peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
         peptide_feature_list.append(peptide_feature)
 
     max_len = np.max([len(v) for v in peptide_feature_list])
+
     for peptide_feature in peptide_feature_list:
         pad_len = max_len - len(peptide_feature)
         peptide_feature += [-2] * pad_len
 
     smiles_repP_list = []
+
     for i in range(len(smiles_list)):
         seq_smi = replaceX_smiles(smiles_list[i], peptide_feature_list[i], config['base_atom'])
         smiles_repP_list.append(seq_smi)
@@ -253,6 +274,7 @@ def calc_prediction_model(
     #Correction of mumerical data
     filled_index_list = []
     exp_modified_list = []
+
     for i, v in enumerate(exp_list):
         if str(v)[0] == '>':
             exp_modified_list.append(float(str(v)[1:])*2)
@@ -264,8 +286,10 @@ def calc_prediction_model(
             if not math.isnan(v):
                 filled_index_list.append(i)
             exp_modified_list.append(v)
+
     if value_log == True:
         exp_modified_list = np.log10(exp_modified_list)
+
     plt.hist(np.array(exp_modified_list)[filled_index_list])
     plt.title(target_name 
               + 'Log10 = ' 
@@ -286,6 +310,7 @@ def calc_prediction_model(
             X = np.array(Morgan_r2_count)[filled_index_list]
         elif feature == 'Morgan_r4_count':
             X = np.array(Morgan_r4_count)[filled_index_list]
+
     if smiles_type == 'smiles_repP_skip7':
         if feature == 'MACCS':
             X = np.array(repP_skip7_MACCS_fp)[filled_index_list]
@@ -299,9 +324,7 @@ def calc_prediction_model(
         X = ss.fit_transform(X)
   
     y = np.array(exp_modified_list)[filled_index_list]
-
     kf = KFold(n_splits=fold_n, shuffle=True, random_state=0)
-
     y_pred_list = []
     y_test_list = []
     y_index_list = []
@@ -325,14 +348,11 @@ def calc_prediction_model(
         y_train = y[train_index]
         X_test = X[test_index]
         y_test = y[test_index]
-
         [y_train_pred, y_train_pred_cov], [y_pred, y_pred_cov] = GP_predict(X_train, X_test, y_train, y_test)
         train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
         train_r = np.corrcoef(y_train, y_train_pred)[0][1]
-
         y_pred_list += list(y_pred)
         y_test_list += list(y_test)
-
         y_index_list += list(test_index)
         r = np.corrcoef(y_test_list, y_pred_list)[0][1]
         r2 = r2_score(y_test_list, y_pred_list)
@@ -340,16 +360,16 @@ def calc_prediction_model(
 
     r = np.corrcoef(y_test_list, y_pred_list)[0][1]
     r2 = r2_score(y_test_list, y_pred_list)
-
     rmse = np.sqrt(mean_squared_error(y_test_list, y_pred_list))
     print('RESULT', model, feature, fold_n, target_index)
     print('r2', r2, 'r', r, 'rmse', rmse)
     print('\n\n\n\n\n\n\n\n\n\n\n')
-
     plt.scatter(y_test_list, y_pred_list)
     plt.plot([np.min(y_test_list), np.max(y_test_list)], [np.min(y_test_list), np.max(y_test_list)])
+    
     for i in range(len(y_test_list)):
         plt.annotate(str(i + 1), (y_test_list[i] + 0.02, y_pred_list[i] + 0.02))
+    
     plt.title(target_name
               +'(N = '+str(len(y_test_list))
               + ', model = '
@@ -357,12 +377,14 @@ def calc_prediction_model(
               + ') r = '
               + str(round(r, 3)))
     plt.grid()
+
     if value_log:
         plt.xlabel('Experimental value (log)')
         plt.ylabel('Predicted value (log)')
     else:
         plt.xlabel('Experimental value')
         plt.ylabel('Predicted value')
+    
     plt.savefig('./result/'
                 + target_name
                 + '_feature'
@@ -378,6 +400,7 @@ def calc_prediction_model(
     plt.clf()
     return r
 
+
 def main():
     data = pd.read_excel(config['data'])
     data_num = len([x for x in data[config['sequence_column']] if pd.isnull(x) == False])
@@ -389,49 +412,55 @@ def main():
     AA_dict.update(config['AA_dict_update'])
     AA_joint.update(config['AA_joint_update'])
     AA_keys = list(AA_dict.keys())
-
     link_index_list = []
+
     for st in ['S5', 'R8', 's5', 'r8', '=']:
         link_index_list.append(AA_keys.index(st))
 
     SR_index_list = []
+
     for st in ['S', 'R', 's', 'r']:
         SR_index_list.append(AA_keys.index(st))
 
     ct_list, nt_list = [], []
+
     for peptide in peptide_list:
         peptide = unicodedata.normalize("NFKD", peptide).strip()
         ct,aa_list,nt = peptide.split('-')
         ct_list.append(ct)
         nt_list.append(nt)
+
     ct_list = list(set(ct_list))
     nt_list = list(set(nt_list))
 
     peptide_feature_list = []
+
     for peptide in peptide_list:
         peptide = unicodedata.normalize("NFKD", peptide).strip()
         ct,aa_list,nt = peptide.split('-')
         ct_index = ct_list.index(ct)
         nt_index = nt_list.index(nt)
-
         tmp_list = []
+
         for i, AA_key in enumerate(AA_keys):
             res = re.finditer(AA_key, aa_list)
             for s in res:
                 tmp_list.append([s.span()[0], i])
+        
         tmp_list = sorted(tmp_list, key=lambda x:float(x[0]))
-
         new_tmp_list = []
+
         for tmp in tmp_list:
             if tmp[0] + 1 < len(aa_list):
                 if tmp[1] in SR_index_list:
                     if aa_list[tmp[0] + 1] in ['5', '8']:
                         continue
             new_tmp_list.append(tmp)
-        tmp_list = new_tmp_list
 
+        tmp_list = new_tmp_list
         AA_index_list = []
         link_list = []
+
         for pair in tmp_list:
             if pair[1] in link_index_list:
                 if pair[1] == AA_keys.index('='):
@@ -443,16 +472,18 @@ def main():
 
         if len(link_list) == 0:
             link_list = [-1, -1]
+
         peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
         peptide_feature_list.append(peptide_feature)
 
-
     max_len = np.max([len(v) for v in peptide_feature_list])
+
     for peptide_feature in peptide_feature_list:
         pad_len = max_len - len(peptide_feature)
         peptide_feature += [-2] * pad_len
 
     smiles_repP_list = []
+
     for i in range(len(smiles_list)):
         seq_smi = replaceX_smiles(smiles_list[i], peptide_feature_list[i], config['base_atom'])
         smiles_repP_list.append(seq_smi)
@@ -492,12 +523,11 @@ def main():
     standardize = False 
     smiles_type_list = []
     feature_list = []
-    r_list_list = []
-    
+    r_list_list = []    
     smiles_select = config['smiles_select']
     fingerprint_select = config['fingerprint_select']
-    if smiles_select == None or fingerprint_select == None:
 
+    if smiles_select == None or fingerprint_select == None:
         for i in target_index_list: 
             r_list = []
             for s in smi_list:
@@ -553,6 +583,7 @@ def main():
     #Generate information of peptides including staple 
     linker_start_time = time.time()
     linker_mutation_info_list = []
+
     for m_i, mutation_info in enumerate(mutation_info_list):    
         for i in range(pep_len):
             for un in linker_index_list:
@@ -576,25 +607,21 @@ def main():
 
     mutation_info_list = mutation_info_list + linker_mutation_info_list
     linker_end_time = time.time()
-
     new_peptide_mol_list1, new_peptide_smi_list1 = [], []
     new_peptide_feature_list1 = []
     cand_data_list1 = []
-
     generate_start_time = time.time()
-
     args_list = [(copy.deepcopy(peptide_feature_list[base_index]), mutation_info) 
                  for mutation_info in mutation_info_list]
 
     with multiprocessing.Pool(processes = proc_n) as pool:
         new_peptide_data_list = pool.starmap(generate_peptide_from_mutation_info, args_list)
+
     new_peptide_smi_list1 = [data[0] for data in new_peptide_data_list if data != None]
     new_peptide_mol_list1 = [data[1] for data in new_peptide_data_list if data != None]
     new_peptide_feature_list1 = [data[2] for data in new_peptide_data_list if data != None]
     cand_data_list1 = [data[3] for data in new_peptide_data_list if data != None]
-
     generate_end_time = time.time()
-
     new_peptide_mol_list, new_peptide_smi_list = [], []
     new_peptide_feature_list = []
     cand_data_list = []
@@ -607,12 +634,12 @@ def main():
             cand_data_list.append(cand_data_list1[i])
 
     new_smiles_repP_list = []
+
     for i in range(len(new_peptide_smi_list)):
         seq_smi = replaceX_smiles(new_peptide_smi_list[i], new_peptide_feature_list[i], config['base_atom'])
         new_smiles_repP_list.append(seq_smi)
 
     mol_list = new_peptide_mol_list
-
     fp_start_time = time.time()
 
     with multiprocessing.Pool(processes=fp_proc_n) as pool:
@@ -628,6 +655,7 @@ def main():
 
     #smiles_repP_skip7
     repP_start_time = time.time()
+
     with multiprocessing.Pool(processes=proc_n) as pool:
         mol_repP_skip7_list = pool.starmap(smi2repP_skip, [(smi, peptide_feature, 7) for smi, 
                                                            peptide_feature in zip(new_smiles_repP_list, new_peptide_feature_list)])
@@ -642,7 +670,6 @@ def main():
         Cand_repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
     repP_end_time = time.time()
-
     target_values_list = list(config['target_list'].values())
     threshold_list = [i[:2] for i in target_values_list]
     value_log = config['value_log']
@@ -662,7 +689,6 @@ def main():
     pi_list_list = []
 
     for target_i in range(len(target_list)):
-
         target_index = target_index_list[target_i]
         target_name = data.keys()[target_index]
         smiles_type = smiles_type_list[target_i]
@@ -672,6 +698,7 @@ def main():
         #Correction of mumerical data
         filled_index_list = []
         exp_modified_list = []
+
         for i, v in enumerate(exp_list):
             if str(v)[0] == '>':
                 exp_modified_list.append(float(str(v)[1:])*2)
@@ -683,6 +710,7 @@ def main():
                 if not math.isnan(v):
                     filled_index_list.append(i)
                 exp_modified_list.append(v)
+
         if value_log == True:
             exp_modified_list = np.log10(exp_modified_list)
 
@@ -697,6 +725,7 @@ def main():
             elif feature == 'Morgan_r4_count':
                 X = np.array(Morgan_r4_count)[filled_index_list]
                 X_cand = np.array(Cand_Morgan_r4_count)
+
         if smiles_type == 'smiles_repP_skip7':
             if feature == 'MACCS':
                 X = np.array(repP_skip7_MACCS_fp)[filled_index_list]
@@ -712,6 +741,7 @@ def main():
             ss = preprocessing.StandardScaler()
             X = ss.fit_transform(X)
             X_cand = ss.fit_transform(np.array(Cand_Morgan_r4_count))
+
         y = np.array(exp_modified_list)[filled_index_list]
 
         #Learning
@@ -729,6 +759,7 @@ def main():
         pi_list_list.append(pi_list)
 
     total_pi_score_list = []
+
     for j in range(len(new_peptide_feature_list)):
         score = 1
         for i in range(len(target_list)):
@@ -743,12 +774,16 @@ def main():
 
     with open('result/total_pi_score_list.pkl', mode='wb') as f:
         pickle.dump(total_pi_score_list, f)
+
     with open('result/cand_data_list.pkl', mode='wb') as f:
         pickle.dump(cand_data_list, f)
+
     with open('result/new_peptide_feature_list.pkl', mode='wb') as f:
         pickle.dump(new_peptide_feature_list, f)
+
     with open('result/pred_y_list_list.pkl', mode='wb') as f:
         pickle.dump(pred_y_list_list, f) 
+
     with open('result/pred_cov_list_list.pkl', mode='wb') as f:
         pickle.dump(pred_cov_list_list, f)   
 
@@ -814,6 +849,7 @@ def main():
         df.columns = ["Sequence","Score"] + target_list
         file_name = "top" + str(display_number) + ".csv"
         df.to_csv("./result/" + file_name, encoding="shift_jis")
-    
+
+
 if __name__ == "__main__":
     main()
