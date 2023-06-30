@@ -26,13 +26,11 @@ from smiles_handler import replaceX_smiles, calc_graph_connect
 
 parser = argparse.ArgumentParser(
         description="",
-        usage=f"python {os.path.basename(__file__)} -c CONFIG_FILE"
-)
+        usage=f"python {os.path.basename(__file__)} -c CONFIG_FILE")
 
 parser.add_argument(
         "-c", "--config", type=str, required=True,
-        help="path to a config file"
-)
+        help="path to a config file")
 
 with open(parser.parse_args().config, "r") as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
@@ -113,7 +111,9 @@ def generate_peptide_from_mutation_info(
     if b == c:
         return None
     else:
-        new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, peptide_feature_list, smiles_list, AA_dict, AA_joint)  
+        new_peptide_smi, new_peptide_mol = generate_new_peptitde(base_index, input_aa_list, 
+                                                                 peptide_feature_list, smiles_list, 
+                                                                 AA_dict, AA_joint)  
         return new_peptide_smi, new_peptide_mol, input_aa_list, [mutation_info, new_peptide_smi]
 
 def mol2FP(mol, fp_type, radial = 4, descriptor_dimension = 1024):   
@@ -145,9 +145,7 @@ def GP_predict(train_X, test_X, train_y, test_y):
 
     return [train_fmean, train_fcov], [test_fmean, test_fcov] 
 
-
 #Validate predicition accuracy
-
 def calc_prediction_model(
         smiles_type, model, feature, fold_n, target_index, 
         fp_proc_n = 4, descriptor_dimension = 1024, 
@@ -221,7 +219,6 @@ def calc_prediction_model(
         peptide_feature = [ct_index, nt_index] + link_list + AA_index_list
         peptide_feature_list.append(peptide_feature)
 
-
     max_len = np.max([len(v) for v in peptide_feature_list])
     for peptide_feature in peptide_feature_list:
         pad_len = max_len - len(peptide_feature)
@@ -241,7 +238,8 @@ def calc_prediction_model(
     with multiprocessing.Pool(processes = fp_proc_n) as pool:
         Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
-    mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
+    mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) 
+                           for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
 
     with multiprocessing.Pool(processes = fp_proc_n) as pool:
         repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
@@ -251,7 +249,6 @@ def calc_prediction_model(
 
     with multiprocessing.Pool(processes = fp_proc_n) as pool:
         repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
-
 
     #Correction of mumerical data
     filled_index_list = []
@@ -311,11 +308,10 @@ def calc_prediction_model(
             'feature_fraction': trial.suggest_float('feature_fraction', 0.4, 1.0),
             'bagging_fraction': trial.suggest_float('bagging_fraction', 0.4, 1.0),
             'bagging_freq': trial.suggest_int('bagging_freq', 1, 7),
-            'min_child_samples': trial.suggest_int('min_child_samples', 5, 100)
-        }
+            'min_child_samples': trial.suggest_int('min_child_samples', 5, 100)}
         train_model.set_params(**params)
         scores = cross_val_score(train_model, X_train, y_train, cv=cv,
-                                scoring='neg_mean_squared_error', fit_params=fit_params, n_jobs=-1)
+                                 scoring='neg_mean_squared_error', fit_params=fit_params, n_jobs=-1)
         return scores.mean()
 
     for train_index, test_index in kf.split(X):
@@ -453,7 +449,8 @@ def main():
     with multiprocessing.Pool(processes = fp_proc_n) as pool:
         Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_list])
 
-    mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
+    mol_repP_skip7_list = [Chem.MolFromSmiles(calc_graph_connect(smi, peptide_feature, skip = 7)) 
+                           for smi, peptide_feature in zip(smiles_repP_list, peptide_feature_list)]
 
     with multiprocessing.Pool(processes = fp_proc_n) as pool:
         repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
@@ -484,7 +481,10 @@ def main():
             r_list = []
             for s in smi_list:
                 for f in fingerprint_list:
-                    r = calc_prediction_model(s, model, f, fold_n, i, fp_proc_n, descriptor_dimension, value_log = True, standardize = False, data_set = data)
+                    r = calc_prediction_model(s, model, f, fold_n, i, 
+                                              fp_proc_n, descriptor_dimension, 
+                                              value_log = True, standardize = False, 
+                                              data_set = data)
                     r_list.append(r)
             r_list_list.append(r_list)
             max = 0
@@ -568,7 +568,8 @@ def main():
 
     generate_start_time = time.time()
 
-    args_list = [(copy.deepcopy(peptide_feature_list[base_index]), mutation_info) for mutation_info in mutation_info_list]
+    args_list = [(copy.deepcopy(peptide_feature_list[base_index]), mutation_info) 
+                 for mutation_info in mutation_info_list]
 
     with multiprocessing.Pool(processes = proc_n) as pool:
         new_peptide_data_list = pool.starmap(generate_peptide_from_mutation_info, args_list)
@@ -613,7 +614,8 @@ def main():
     #smiles_repP_skip7
     repP_start_time = time.time()
     with multiprocessing.Pool(processes = proc_n) as pool:
-        mol_repP_skip7_list = pool.starmap(smi2repP_skip, [(smi, peptide_feature, 7) for smi, peptide_feature in zip(new_smiles_repP_list, new_peptide_feature_list)])
+        mol_repP_skip7_list = pool.starmap(smi2repP_skip, [(smi, peptide_feature, 7) for smi, 
+                                                           peptide_feature in zip(new_smiles_repP_list, new_peptide_feature_list)])
 
     with multiprocessing.Pool(processes = proc_n) as pool:
         Cand_repP_skip7_MACCS_fp = pool.starmap(mol2FP, [(mol, 'MACCS') for mol in mol_repP_skip7_list])
@@ -625,8 +627,6 @@ def main():
         Cand_repP_skip7_Morgan_r4_count = pool.starmap(mol2FP, [(mol, 'MorganCount', 4, descriptor_dimension) for mol in mol_repP_skip7_list])
 
     repP_end_time = time.time()
-
-
 
     target_values_list = list(config['target_list'].values())
     threshold_list = [i[:2] for i in target_values_list]
@@ -713,7 +713,6 @@ def main():
         pred_cov_list_list.append(y_pred_cov)
         pi_list_list.append(pi_list)
 
-
     total_pi_score_list = []
     for j in range(len(new_peptide_feature_list)):
         score = 1
@@ -751,12 +750,19 @@ def main():
             
             each_aa_ordered_total_PI_score_index = np.argsort(each_aa_total_pi_score_list)[::-1]
             for top_index in each_aa_ordered_total_PI_score_index[:display_number]:
-                print( AA_dict[mutatable_AA_list[i]],'total_pi_score', round(each_aa_total_pi_score_list[top_index], 3), 'mutation_info', cand_data_list[each_aa_index_list[top_index]][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[each_aa_index_list[top_index]] if v != -2], AA_keys, ct_list, nt_list))
-                result_list = [AA_dict[mutatable_AA_list[i]],peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list), round(each_aa_total_pi_score_list[top_index],3)]
+                print(AA_dict[mutatable_AA_list[i]],'total_pi_score', 
+                      round(each_aa_total_pi_score_list[top_index], 3), 
+                      'mutation_info', cand_data_list[each_aa_index_list[top_index]][0], 
+                      peptide_feature2AA_seq([v for v in new_peptide_feature_list[each_aa_index_list[top_index]] if v != -2], 
+                                             AA_keys, ct_list, nt_list))
+                result_list = [AA_dict[mutatable_AA_list[i]],
+                               peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list), 
+                               round(each_aa_total_pi_score_list[top_index],3)]
                 for target_i in range(len(target_list)):
                     target_index = target_index_list[target_i]
                     target_name = data.keys()[target_index]
-                    print('  ', target_name, round(10**pred_y_list_list[target_i][each_aa_index_list[top_index]], 3), '(', round(10**pred_cov_list_list[target_i][each_aa_index_list[top_index]]**0.5,3), ')' )
+                    print('  ', target_name, round(10**pred_y_list_list[target_i][each_aa_index_list[top_index]], 3), 
+                          '(', round(10**pred_cov_list_list[target_i][each_aa_index_list[top_index]]**0.5,3), ')' )
                     result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3)) + " " + '(' + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) + ')')
                 Total_result_list.append(result_list)
         df = pd.DataFrame(Total_result_list)
@@ -764,13 +770,15 @@ def main():
         file_name = "top" + str(display_number) + "_each_aa.csv"
         df.to_csv("./result/" + file_name, encoding="shift_jis")
 
-
     else:
         ordered_total_PI_score_index = np.argsort(total_pi_score_list)[::-1]
         Total_result_list = []
         for top_index in ordered_total_PI_score_index[:display_number]:
-            print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 'mutation_info', cand_data_list[top_index][0], peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list))
-            result_list = [peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list), round(total_pi_score_list[top_index],3)]
+            print('index', top_index, 'total_pi_score', round(total_pi_score_list[top_index],3), 
+                  'mutation_info', cand_data_list[top_index][0], 
+                  peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list))
+            result_list = [peptide_feature2AA_seq([v for v in new_peptide_feature_list[top_index] if v != -2], AA_keys, ct_list, nt_list), 
+                           round(total_pi_score_list[top_index],3)]
             for target_i in range(len(target_list)):
                 target_index = target_index_list[target_i]
                 target_name = data.keys()[target_index]
