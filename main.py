@@ -79,9 +79,9 @@ def generate_peptide_from_mutation_info(
 
         new_tmp_list = []
         for tmp in tmp_list:
-            if tmp[0]+1 < len(aa_list):
+            if tmp[0] + 1 < len(aa_list):
                 if tmp[1] in SR_index_list:
-                    if aa_list[tmp[0]+1] in ['5', '8']:
+                    if aa_list[tmp[0] + 1] in ['5', '8']:
                         continue
             new_tmp_list.append(tmp)
         tmp_list = new_tmp_list
@@ -196,9 +196,9 @@ def calc_prediction_model(
 
         new_tmp_list = []
         for tmp in tmp_list:
-            if tmp[0]+1 < len(aa_list):
+            if tmp[0] + 1 < len(aa_list):
                 if tmp[1] in SR_index_list:
-                    if aa_list[tmp[0]+1] in ['5', '8']:
+                    if aa_list[tmp[0] + 1] in ['5', '8']:
                         continue
             new_tmp_list.append(tmp)
         tmp_list = new_tmp_list
@@ -267,10 +267,16 @@ def calc_prediction_model(
     if value_log == True:
         exp_modified_list = np.log10(exp_modified_list)
     plt.hist(np.array(exp_modified_list)[filled_index_list])
-    plt.title(target_name+' Log10='+str(value_log))
+    plt.title(target_name 
+              + 'Log10=' 
+              + str(value_log))
     plt.xlabel(target_name)
     plt.ylabel('frequency')
-    plt.savefig('./result/'+target_name+'_dist_log'+str(value_log)+'.png', dpi = 300)
+    plt.savefig('./result/' 
+                + target_name 
+                + '_dist_log' 
+                + str(value_log) 
+                + '.png', dpi = 300)
     plt.show()
 
     if smiles_type == 'original':
@@ -343,8 +349,13 @@ def calc_prediction_model(
     plt.scatter(y_test_list, y_pred_list)
     plt.plot([np.min(y_test_list), np.max(y_test_list)], [np.min(y_test_list), np.max(y_test_list)])
     for i in range(len(y_test_list)):
-        plt.annotate(str(i+1), (y_test_list[i]+0.02, y_pred_list[i]+0.02))
-    plt.title(target_name+' (N='+str(len(y_test_list))+', model = '+model+') r='+str(round(r, 3)))
+        plt.annotate(str(i + 1), (y_test_list[i] + 0.02, y_pred_list[i] + 0.02))
+    plt.title(target_name
+              +'(N='+str(len(y_test_list))
+              + ', model = '
+              + model
+              + ') r='
+              + str(round(r, 3)))
     plt.grid()
     if value_log:
         plt.xlabel('Experimental value (log)')
@@ -352,7 +363,17 @@ def calc_prediction_model(
     else:
         plt.xlabel('Experimental value')
         plt.ylabel('Predicted value')
-    plt.savefig('./result/'+target_name+'_feature'+feature+'_CV'+str(fold_n)+'_model'+model+'_smile'+smiles_type+'_scatter.png', dpi = 300)
+    plt.savefig('./result/'
+                + target_name
+                + '_feature'
+                + feature
+                + '_CV'
+                + str(fold_n)
+                + '_model'
+                + model
+                + '_smile'
+                + smiles_type
+                + '_scatter.png', dpi = 300)
     plt.show()
     plt.clf()
     return r
@@ -402,9 +423,9 @@ def main():
 
         new_tmp_list = []
         for tmp in tmp_list:
-            if tmp[0]+1 < len(aa_list):
+            if tmp[0] + 1 < len(aa_list):
                 if tmp[1] in SR_index_list:
-                    if aa_list[tmp[0]+1] in ['5', '8']:
+                    if aa_list[tmp[0] + 1] in ['5', '8']:
                         continue
             new_tmp_list.append(tmp)
         tmp_list = new_tmp_list
@@ -542,21 +563,21 @@ def main():
         for i in range(pep_len):
             for un in linker_index_list:
                 if un == 27: #S5-S5
-                    if i+4 > pep_len - 1:
+                    if i + 4 > pep_len - 1:
                         continue
                     new_mutation_info = copy.deepcopy(mutation_info)
-                    new_mutation_info[0] = [i+1, i+4+1]
-                    new_mutation_info[1] = new_mutation_info[1]+[i, i+4]
-                    new_mutation_info[2] = new_mutation_info[2]+[27, 27]
+                    new_mutation_info[0] = [i + 1, i + 4 + 1]
+                    new_mutation_info[1] = new_mutation_info[1] + [i, i + 4]
+                    new_mutation_info[2] = new_mutation_info[2] + [27, 27]
                     linker_mutation_info_list.append(new_mutation_info)
                 
                 elif un == 28: #R8-S5
-                    if i+7 > pep_len - 1:
+                    if i + 7 > pep_len - 1:
                         continue
                     new_mutation_info = copy.deepcopy(mutation_info)
-                    new_mutation_info[0] = [i+1, i+7+1]
-                    new_mutation_info[1] = new_mutation_info[1]+[i, i+7]
-                    new_mutation_info[2] = new_mutation_info[2]+[28, 27]
+                    new_mutation_info[0] = [i + 1, i + 7 + 1]
+                    new_mutation_info[1] = new_mutation_info[1] + [i, i + 7]
+                    new_mutation_info[2] = new_mutation_info[2] + [28, 27]
                     linker_mutation_info_list.append(new_mutation_info)
 
     mutation_info_list = mutation_info_list + linker_mutation_info_list
@@ -763,7 +784,11 @@ def main():
                     target_name = data.keys()[target_index]
                     print('  ', target_name, round(10**pred_y_list_list[target_i][each_aa_index_list[top_index]], 3), 
                           '(', round(10**pred_cov_list_list[target_i][each_aa_index_list[top_index]]**0.5,3), ')' )
-                    result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3)) + " " + '(' + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) + ')')
+                    result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3))
+                                       + " "
+                                       + '(' 
+                                       + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) 
+                                       + ')')
                 Total_result_list.append(result_list)
         df = pd.DataFrame(Total_result_list)
         df.columns = ["Amino_acid_name","Sequence","Score"] + target_list
@@ -782,8 +807,14 @@ def main():
             for target_i in range(len(target_list)):
                 target_index = target_index_list[target_i]
                 target_name = data.keys()[target_index]
-                print('  ', target_name, round(10**pred_y_list_list[target_i][top_index], 3), '(', round(10**pred_cov_list_list[target_i][top_index]**0.5,3), ')' )
-                result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3)) + " " + '(' + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) + ')')
+                print('  ', target_name, 
+                      round(10**pred_y_list_list[target_i][top_index], 3), '(',
+                      round(10**pred_cov_list_list[target_i][top_index]**0.5,3), ')' )
+                result_list.append(str(round(10**pred_y_list_list[target_i][top_index], 3)) 
+                                   + " " 
+                                   + '(' 
+                                   + str(round(10**pred_cov_list_list[target_i][top_index]**0.5,3)) 
+                                   + ')')
             Total_result_list.append(result_list)
         df = pd.DataFrame(Total_result_list)
         df.columns = ["Sequence","Score"] + target_list
