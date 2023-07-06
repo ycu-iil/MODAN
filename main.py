@@ -19,6 +19,7 @@ from rdkit.Chem import AllChem
 from sklearn import preprocessing 
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.metrics import r2_score, mean_squared_error
+
 from acquisition_function import calc_PI_overfmax, calc_PI_underfmin
 from feature_generator import calc_MorganCount
 from peptide_handler import peptide_feature2AA_seq, generate_new_peptitde
