@@ -32,6 +32,7 @@ L_AA_dict = {
     'S5': '(S)-2-(4-pentenyl)Alanine',
     'R8': '(R)-2-(7-pentenyl)Alanine'
 }
+
 D_AA_dict = {
     'a': 'D-Alanine',
     'c': 'D-Cysteine',
