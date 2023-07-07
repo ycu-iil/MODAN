@@ -27,9 +27,13 @@ def calc_smiles_skip_connection(smi, peptide_feature, skip=4):
 
     for i in range(pep_len):
         skip_base = i % skip
+        
         if i < pep_len - skip:
-            bs = [mol.GetBondBetweenAtoms(matches[i*4 + 1],matches[i*4 + 3]).GetIdx(), mol.GetBondBetweenAtoms(matches[i*4 + 3], matches[i*4 + 4]).GetIdx()]
-            fragments_mol = Chem.FragmentOnBonds(mol, bs, addDummies=True, dummyLabels=[(int(i/skip + 1), int(i/skip + 1)), (int(i/skip + 2), int(i/skip + 2))])
+            bs = [mol.GetBondBetweenAtoms(matches[i*4 + 1], matches[i*4 + 3]).GetIdx(), 
+                  mol.GetBondBetweenAtoms(matches[i*4 + 3], matches[i*4 + 4]).GetIdx()]
+            fragments_mol = Chem.FragmentOnBonds(mol, bs, 
+                                                 addDummies=True, 
+                                                 dummyLabels=[(int(i/skip + 1), int(i/skip + 1)), (int(i/skip + 2), int(i/skip + 2))])
             fragments = Chem.GetMolFrags(fragments_mol,asMols=True)
             for fragment in fragments:
               if '[' + str(int(i/skip + 1)) + '*]' in Chem.MolToSmiles(fragment) and '[' + str(int(i/skip + 2)) + '*]' in Chem.MolToSmiles(fragment):
@@ -40,7 +44,7 @@ def calc_smiles_skip_connection(smi, peptide_feature, skip=4):
             vertical_list[skip_base] = rxn.RunReactants([vertical_list[skip_base], aa_fragment])[0][0]
 
         else:
-            reaction_pattern = '[*:1]['+str(int(i/skip+1))+'*] >> [*:1][H]'
+            reaction_pattern = '[*:1][' + str(int(i/skip + 1)) + '*] >> [*:1][H]'
             rxn = AllChem.ReactionFromSmarts(reaction_pattern)
             vertical_list[skip_base] = rxn.RunReactants([vertical_list[skip_base]])[0][0]
 
