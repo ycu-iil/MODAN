@@ -27,7 +27,7 @@ def calc_smiles_skip_connection(smi, peptide_feature, skip=4):
 
     for i in range(pep_len):
         skip_base = i % skip
-        
+
         if i < pep_len - skip:
             bs = [mol.GetBondBetweenAtoms(matches[i*4 + 1], matches[i*4 + 3]).GetIdx(), 
                   mol.GetBondBetweenAtoms(matches[i*4 + 3], matches[i*4 + 4]).GetIdx()]
@@ -52,7 +52,7 @@ def calc_smiles_skip_connection(smi, peptide_feature, skip=4):
     return vertical_list
 
 
-def replaceX_smiles(smi, peptide_feature, base_atom ='P'):
+def replaceX_smiles(smi, peptide_feature, base_atom='P'):
     pep_len = len([v for v in  peptide_feature[4:] if v >= 0])
     mol = Chem.MolFromSmiles(smi)
     tmp = Chem.MolFromSmiles('NC(=O)C' * (pep_len))  
