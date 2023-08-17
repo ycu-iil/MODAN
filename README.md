@@ -1,6 +1,6 @@
 # MODAN
 
-MODAN (https://doi.org/10.26434/chemrxiv-2023-cbrjc-v2) is a multi-objective Bayesian framework for the design of antimicrobial peptides (AMPs) considering various non-proteinogenic amino acids (NPAAs) containing α,α-disubstituted NPAAs and side-chain stapling.
+MODAN (https://pubs.rsc.org/en/content/articlelanding/2023/dd/d3dd00090g) is a multi-objective Bayesian framework for the design of antimicrobial peptides (AMPs) considering various non-proteinogenic amino acids (NPAAs) containing α,α-disubstituted NPAAs and side-chain stapling.
 
 ## Confirmed
 Python: 3.9.12
